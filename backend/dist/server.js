@@ -27,8 +27,11 @@ app.use("/orders", orderRoutes_1.default);
 app.use("/payments", paymentRoutes_1.default);
 const port = Number(process.env.PORT) || 3001;
 (0, db_1.connectDatabase)().then(() => {
-    app.listen(port, () => {
+    app.listen(port, "0.0.0.0", () => {
         console.log(`API rodando na porta ${port}`);
     });
+}).catch((error) => {
+    console.error("Erro ao conectar no MongoDB:", error);
+    process.exit(1);
 });
 //# sourceMappingURL=server.js.map
