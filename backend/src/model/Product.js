@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Product = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
+const productSchema = new mongoose_1.default.Schema({
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    shortDescription: { type: String, required: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    category: { type: String, required: true },
+    imageUrl: { type: String, default: null },
+    isFeatured: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    displayOrder: { type: Number, default: 0 },
+}, {
+    timestamps: true,
+});
+exports.Product = mongoose_1.default.model("Product", productSchema);
+//# sourceMappingURL=Product.js.map
