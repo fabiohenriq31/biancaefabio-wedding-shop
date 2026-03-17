@@ -1,231 +1,240 @@
-import { useState, useEffect } from 'react';
-import { Search, Download, Filter, Heart, Package, DollarSign, Users } from 'lucide-react';
-import { Card } from '../components/Card';
-import { Badge } from '../components/Badge';
-import { Input } from '../components/Input';
-import { EmptyState } from '../components/EmptyState';
+import { useEffect, useMemo, useState } from "react";
+import { Package, Users, DollarSign, Heart, Search } from "lucide-react";
 
 export function AdminPage() {
   const [orders, setOrders] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load all orders from localStorage
-    const savedOrders = JSON.parse(localStorage.getItem('wedding_orders') || '[]');
-    setOrders(savedOrders);
+    async function loadOrders() {
+      try {
+        const response = await fetch("http://localhost:3001/orders");
+        const data = await response.json();
+        setOrders(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadOrders();
   }, []);
 
-  // Calculate stats
+  const filteredOrders = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+
+    return orders.filter((order) => {
+      const orderId = String(order._id || "").toLowerCase();
+      const name = String(order.customerName || "").toLowerCase();
+      const email = String(order.customerEmail || "").toLowerCase();
+
+      return (
+        orderId.includes(query) ||
+        name.includes(query) ||
+        email.includes(query)
+      );
+    });
+  }, [orders, searchQuery]);
+
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const totalItems = orders.reduce((sum, order) =>
-    sum + order.items.reduce((itemSum: number, item: any) => itemSum + item.quantity, 0), 0
-  );
 
-  // Filter orders
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch =
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const totalRevenue = orders.reduce((sum, order) => {
+    return sum + (order.totalAmount ?? 0);
+  }, 0);
 
-    return matchesSearch;
-  });
+  const totalItems = orders.reduce((sum, order) => {
+    const items = Array.isArray(order.items) ? order.items : [];
+    return sum + items.reduce((s: number, i: any) => s + (i.quantity ?? 0), 0);
+  }, 0);
+
+  const uniqueGuests = new Set(
+    orders.map((o) => o.customerEmail).filter(Boolean)
+  ).size;
 
   return (
-    <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)] py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl mb-2 text-[var(--wedding-text)]">
-            Área Administrativa
+    <div className="min-h-screen bg-[var(--wedding-offwhite)] py-12">
+      <div className="max-w-7xl mx-auto px-6">
+
+        {/* HEADER */}
+
+        <div className="mb-10">
+          <h1 className="text-4xl font-semibold text-[var(--wedding-text)]">
+            Painel Administrativo
           </h1>
-          <p className="text-[var(--wedding-text-light)]">
-            Gerencie os presentes recebidos
+
+          <p className="text-[var(--wedding-text-light)] mt-2">
+            Controle de presentes enviados pelos convidados
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-[var(--wedding-gold)]" />
-              </div>
-              <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Total de pedidos</p>
-                <p className="text-2xl text-[var(--wedding-text)]">{totalOrders}</p>
-              </div>
-            </div>
-          </Card>
+        {/* STATS */}
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-[var(--wedding-gold)]" />
-              </div>
-              <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Valor total</p>
-                <p className="text-2xl text-[var(--wedding-text)]">
-                  R$ {totalRevenue.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                <Heart className="w-6 h-6 text-[var(--wedding-gold)]" />
-              </div>
-              <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Itens presenteados</p>
-                <p className="text-2xl text-[var(--wedding-text)]">{totalItems}</p>
-              </div>
-            </div>
-          </Card>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--wedding-beige)]">
+            <Package className="mb-2 text-[var(--wedding-gold)]" />
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Pedidos
+            </p>
+            <p className="text-3xl font-semibold text-[var(--wedding-text)]">
+              {totalOrders}
+            </p>
+          </div>
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-[var(--wedding-gold)]" />
-              </div>
-              <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Convidados</p>
-                <p className="text-2xl text-[var(--wedding-text)]">{totalOrders}</p>
-              </div>
-            </div>
-          </Card>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--wedding-beige)]">
+            <DollarSign className="mb-2 text-[var(--wedding-gold)]" />
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Valor total
+            </p>
+            <p className="text-3xl font-semibold text-[var(--wedding-text)]">
+              R$ {totalRevenue.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--wedding-beige)]">
+            <Heart className="mb-2 text-[var(--wedding-gold)]" />
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Itens presenteados
+            </p>
+            <p className="text-3xl font-semibold text-[var(--wedding-text)]">
+              {totalItems}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--wedding-beige)]">
+            <Users className="mb-2 text-[var(--wedding-gold)]" />
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Convidados
+            </p>
+            <p className="text-3xl font-semibold text-[var(--wedding-text)]">
+              {uniqueGuests}
+            </p>
+          </div>
+
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--wedding-text-light)]" />
-              <input
-                type="text"
-                placeholder="Buscar por nome, email ou pedido..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg bg-[var(--wedding-beige)] border border-transparent text-[var(--wedding-text)] placeholder:text-[var(--wedding-text-light)] focus:outline-none focus:ring-2 focus:ring-[var(--wedding-gold)]"
-              />
-            </div>
-          </div>
-        </Card>
+        {/* SEARCH */}
 
-        {/* Orders table */}
-        <Card padding="none">
-          {filteredOrders.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[var(--wedding-beige)]">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Pedido
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Convidado
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Itens
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Valor
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Data
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm text-[var(--wedding-text)]">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--wedding-beige)]">
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-[var(--wedding-beige)] transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-[var(--wedding-text)]">
-                          #{order.id}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-[var(--wedding-text)]">
-                          {order.customerName}
-                        </p>
-                        <p className="text-xs text-[var(--wedding-text-light)]">
-                          {order.customerEmail}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-[var(--wedding-text-light)]">
-                          {order.items.map((item: any, idx: number) => (
-                            <div key={idx}>
-                              {item.quantity}x {item.productName}
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-[var(--wedding-text)]">
-                          R$ {order.total.toFixed(2)}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-[var(--wedding-text-light)]">
-                          {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant="success">Confirmado</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-8">
-              <EmptyState
-                icon={<Package className="w-12 h-12" />}
-                title="Nenhum pedido encontrado"
-                description={searchQuery ? "Tente buscar com outros termos" : "Os pedidos aparecerão aqui quando os convidados fizerem suas compras"}
-              />
-            </div>
+        <div className="bg-white rounded-xl p-6 border border-[var(--wedding-beige)] mb-8">
+          <div className="flex items-center gap-3">
+
+            <Search size={18} />
+
+            <input
+              type="text"
+              placeholder="Buscar por nome, email ou pedido..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 outline-none bg-transparent"
+            />
+
+          </div>
+        </div>
+
+        {/* ORDERS */}
+
+        <div className="space-y-6">
+
+          {loading && (
+            <p className="text-[var(--wedding-text-light)]">
+              Carregando pedidos...
+            </p>
           )}
-        </Card>
 
-        {/* Messages section */}
-        {orders.some(order => order.giftMessage) && (
-          <div className="mt-8">
-            <h2 className="text-2xl mb-4 text-[var(--wedding-text)]">
-              Mensagens dos convidados
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {orders
-                .filter(order => order.giftMessage)
-                .map((order) => (
-                  <Card key={order.id}>
-                    <div className="flex items-start gap-3">
-                      <Heart className="w-5 h-5 text-[var(--wedding-gold)] flex-shrink-0 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm text-[var(--wedding-text)] mb-1">
-                          {order.customerName}
-                        </p>
-                        <p className="text-sm text-[var(--wedding-text-light)] italic">
-                          "{order.giftMessage}"
-                        </p>
-                        <p className="text-xs text-[var(--wedding-text-light)] mt-2">
-                          {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                        </p>
+          {!loading && filteredOrders.length === 0 && (
+            <p className="text-[var(--wedding-text-light)]">
+              Nenhum pedido encontrado.
+            </p>
+          )}
+
+          {filteredOrders.map((order) => {
+
+            const items = Array.isArray(order.items) ? order.items : [];
+            const orderTotal = order.totalAmount ?? 0;
+
+            return (
+              <div
+                key={order._id}
+                className="bg-white rounded-xl border border-[var(--wedding-beige)] p-6 shadow-sm"
+              >
+
+                {/* HEADER */}
+
+                <div className="flex justify-between mb-4">
+
+                  <div>
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      Pedido #{order._id}
+                    </p>
+
+                    <p className="text-lg font-medium text-[var(--wedding-text)]">
+                      {order.customerName}
+                    </p>
+
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      {order.customerEmail}
+                    </p>
+                  </div>
+
+                  <div className="text-sm bg-[var(--wedding-beige)] px-3 py-1 rounded-full h-fit">
+                    {order.paymentStatus === "paid" ? "Pago" : "Aguardando"}
+                  </div>
+
+                </div>
+
+                {/* ITEMS */}
+
+                <div className="space-y-2 mb-4">
+
+                  {items.map((item: any, i: number) => {
+
+                    const total =
+                      (item.price ?? item.unitPrice ?? 0) * item.quantity;
+
+                    return (
+                      <div key={i} className="flex justify-between text-sm">
+
+                        <span className="text-[var(--wedding-text-light)]">
+                          {item.quantity}x {item.productName}
+                        </span>
+
+                        <span className="text-[var(--wedding-text)]">
+                          R$ {total.toFixed(2)}
+                        </span>
+
                       </div>
-                    </div>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        )}
+                    );
+                  })}
+                </div>
+
+                {/* MESSAGE */}
+
+                {order.giftMessage && (
+                  <div className="bg-[var(--wedding-beige)] p-3 rounded-lg text-sm italic mb-4">
+                    "{order.giftMessage}"
+                  </div>
+                )}
+
+                {/* TOTAL */}
+
+                <div className="flex justify-between border-t pt-3">
+
+                  <span className="text-[var(--wedding-text-light)]">
+                    Total
+                  </span>
+
+                  <span className="font-semibold text-[var(--wedding-text)]">
+                    R$ {orderTotal.toFixed(2)}
+                  </span>
+
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

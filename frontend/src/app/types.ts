@@ -8,20 +8,22 @@ export type OrderStatus = 'pending' | 'confirmed' | 'cancelled';
 
 export type PaymentStatus = 'awaiting_payment' | 'paid' | 'failed' | 'refunded';
 
-export interface Product {
-  id: string;
-  slug: string;
+export type Product = {
+  _id?: string;
+  id?: string;
   name: string;
+  slug: string;
   shortDescription: string;
   description: string;
   price: number;
-  category: Category;
-  imageUrl: string;
+  category: string;
+  imageUrl?: string | null;
   isFeatured: boolean;
   isActive: boolean;
-  stockType: 'symbolic';
   displayOrder: number;
-}
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export interface CartItem {
   cartItemId: string;

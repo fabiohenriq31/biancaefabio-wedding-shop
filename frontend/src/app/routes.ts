@@ -7,7 +7,7 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { AdminPage } from './pages/AdminPage';
+import { AdminProtectedPage } from './components/AdminProtectedPage';
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +23,10 @@ export const router = createBrowserRouter([
       { path: 'success', Component: SuccessPage },
       { path: 'profile', Component: ProfilePage },
       { path: 'orders', Component: ProfilePage },
-      { path: 'admin', Component: AdminPage },
+      {
+        path: 'admin',
+        Component: AdminProtectedPage,
+      },
     ],
   },
   {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { CreditCard, Smartphone, Heart } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -6,11 +6,13 @@ import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { createOrder } from '../services/orderService';
 import type { PaymentMethod } from '../types';
+import { createCheckoutPro } from '../services/paymentService';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { cartItems, cartSubtotal, clearCart } = useCart();
+  const { cartItems, cartSubtotal } = useCart();
   const { user } = useAuth();
 
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -19,42 +21,62 @@ export function CheckoutPage() {
   const [giftMessage, setGiftMessage] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [processing, setProcessing] = useState(false);
+  const [orderCompleted, setOrderCompleted] = useState(false);
 
   const handleFinishOrder = async () => {
-    setProcessing(true);
+    if (!user?.id) {
+      navigate('/shopping/login');
+      return;
+    }
 
-    // Simulate payment processing
-    setTimeout(() => {
-      // Create mock order
-      const order = {
-        id: `ORDER-${Date.now()}`,
+    try {
+      setProcessing(true);
+
+      const payload = {
+        userId: user.id,
         customerName,
         customerEmail,
         customerPhone,
         giftMessage,
         paymentMethod,
-        items: cartItems,
-        total: cartSubtotal,
-        createdAt: new Date()
+        items: cartItems.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          price: item.productPrice,
+          quantity: item.quantity,
+        })),
       };
 
-      // Save order to localStorage
-      const orders = JSON.parse(localStorage.getItem('wedding_orders') || '[]');
-      orders.push(order);
-      localStorage.setItem('wedding_orders', JSON.stringify(orders));
+      console.log('PAYLOAD ORDER:', payload);
 
-      // Clear cart
-      clearCart();
+      const response = await createOrder(payload);
+      console.log('RESPONSE ORDER:', response);
 
-      // Navigate to success page
-      navigate('/shopping/success', { state: { order } });
-    }, 2000);
+      const orderId = response.order._id || response.order.id;
+      console.log('ORDER ID:', orderId);
+
+      const payment = await createCheckoutPro(orderId);
+      console.log('PAYMENT RESPONSE:', payment);
+
+      window.location.href = payment.initPoint;
+    } catch (error) {
+      console.error('ERRO CHECKOUT:', error);
+
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Erro ao finalizar pedido.');
+      }
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  if (cartItems.length === 0) {
-    navigate('/shopping/cart');
-    return null;
-  }
+  useEffect(() => {
+    if (!processing && !orderCompleted && cartItems.length === 0) {
+      navigate('/shopping/cart');
+    }
+  }, [cartItems.length, processing, orderCompleted, navigate]);
 
   return (
     <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)] py-12">
@@ -69,9 +91,7 @@ export function CheckoutPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Customer info */}
             <Card>
               <h2 className="text-2xl mb-6 text-[var(--wedding-text)]">
                 Seus dados
@@ -101,7 +121,6 @@ export function CheckoutPage() {
               </div>
             </Card>
 
-            {/* Gift message */}
             <Card>
               <h2 className="text-2xl mb-3 text-[var(--wedding-text)]">
                 Mensagem para os noivos
@@ -118,7 +137,6 @@ export function CheckoutPage() {
               />
             </Card>
 
-            {/* Payment method */}
             <Card>
               <h2 className="text-2xl mb-6 text-[var(--wedding-text)]">
                 Forma de pagamento
@@ -139,9 +157,13 @@ export function CheckoutPage() {
                       Pagamento instantâneo
                     </p>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    paymentMethod === 'pix' ? 'border-[var(--wedding-gold)]' : 'border-[var(--wedding-gray)]'
-                  }`}>
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      paymentMethod === 'pix'
+                        ? 'border-[var(--wedding-gold)]'
+                        : 'border-[var(--wedding-gray)]'
+                    }`}
+                  >
                     {paymentMethod === 'pix' && (
                       <div className="w-3 h-3 rounded-full bg-[var(--wedding-gold)]" />
                     )}
@@ -163,9 +185,13 @@ export function CheckoutPage() {
                       Parcelamento disponível
                     </p>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    paymentMethod === 'credit_card' ? 'border-[var(--wedding-gold)]' : 'border-[var(--wedding-gray)]'
-                  }`}>
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      paymentMethod === 'credit_card'
+                        ? 'border-[var(--wedding-gold)]'
+                        : 'border-[var(--wedding-gray)]'
+                    }`}
+                  >
                     {paymentMethod === 'credit_card' && (
                       <div className="w-3 h-3 rounded-full bg-[var(--wedding-gold)]" />
                     )}
@@ -175,7 +201,6 @@ export function CheckoutPage() {
             </Card>
           </div>
 
-          {/* Order summary */}
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <h2 className="text-2xl mb-6 text-[var(--wedding-text)]">
@@ -183,7 +208,7 @@ export function CheckoutPage() {
               </h2>
 
               <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-                {cartItems.map(item => (
+                {cartItems.map((item) => (
                   <div key={item.cartItemId} className="flex justify-between text-sm">
                     <span className="text-[var(--wedding-text-light)]">
                       {item.quantity}x {item.productName}

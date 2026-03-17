@@ -1,12 +1,11 @@
-import { useState } from 'react';
-import { Search, SlidersHorizontal, ShoppingBag } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Search, ShoppingBag } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { useCart } from '../contexts/CartContext';
-import { products, categories } from '../data/products';
+import { getProducts } from '../services/productService';
 import type { Product } from '../types';
 
 export function ProductsPage() {
@@ -14,17 +13,46 @@ export function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price-asc' | 'price-desc'>('name');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const { addToCart } = useCart();
 
-  // Filter products
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'Todos' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+        const data = await getProducts();
+        setProducts(data);
+      } catch {
+        setError('Não foi possível carregar os presentes.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
+
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set(products.map((product) => product.category))
+    );
+
+    return ['Todos', ...uniqueCategories];
+  }, [products]);
+
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      selectedCategory === 'Todos' || product.category === selectedCategory;
+
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
+
     return matchesCategory && matchesSearch && product.isActive;
   });
 
-  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'price-asc') return a.price - b.price;
@@ -40,10 +68,38 @@ export function ProductsPage() {
     setSelectedProduct(product);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <p className="text-[var(--wedding-text-light)]">Carregando presentes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <EmptyState
+            icon={<ShoppingBag className="w-16 h-16" />}
+            title="Não foi possível carregar os presentes"
+            description={error}
+            action={
+              <Button onClick={() => window.location.reload()}>
+                Tentar novamente
+              </Button>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl mb-3 text-[var(--wedding-text)]">
             Escolha seus presentes
@@ -53,9 +109,7 @@ export function ProductsPage() {
           </p>
         </div>
 
-        {/* Filters */}
         <div className="mb-8 space-y-4">
-          {/* Search */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -73,7 +127,7 @@ export function ProductsPage() {
             <div className="flex gap-2">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'price-asc' | 'price-desc')}
                 className="px-4 py-3 rounded-lg bg-white border border-[var(--wedding-beige)] text-[var(--wedding-text)] focus:outline-none focus:ring-2 focus:ring-[var(--wedding-gold)]"
               >
                 <option value="name">Nome</option>
@@ -83,9 +137,8 @@ export function ProductsPage() {
             </div>
           </div>
 
-          {/* Category pills */}
           <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
+            {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
@@ -103,19 +156,17 @@ export function ProductsPage() {
           </div>
         </div>
 
-        {/* Results count */}
         <div className="mb-6">
           <p className="text-sm text-[var(--wedding-text-light)]">
             {sortedProducts.length} {sortedProducts.length === 1 ? 'presente encontrado' : 'presentes encontrados'}
           </p>
         </div>
 
-        {/* Products grid */}
         {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedProducts.map(product => (
+            {sortedProducts.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product._id || product.id}
                 product={product}
                 onAddToCart={handleAddToCart}
                 onViewDetails={handleViewDetails}
@@ -128,10 +179,12 @@ export function ProductsPage() {
             title="Nenhum presente encontrado"
             description="Tente ajustar os filtros ou buscar por outro termo"
             action={
-              <Button onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('Todos');
-              }}>
+              <Button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('Todos');
+                }}
+              >
                 Limpar filtros
               </Button>
             }
@@ -139,7 +192,6 @@ export function ProductsPage() {
         )}
       </div>
 
-      {/* Product Detail Modal */}
       {selectedProduct && (
         <Modal
           isOpen={!!selectedProduct}
@@ -148,12 +200,13 @@ export function ProductsPage() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <img
-                src={selectedProduct.imageUrl}
-                alt={selectedProduct.name}
-                className="w-full rounded-lg"
-              />
+              <div className="w-full h-80 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
+                <span className="text-[var(--wedding-text-light)]">
+                  Presente simbólico
+                </span>
+              </div>
             </div>
+
             <div>
               <div className="mb-4">
                 <span className="inline-block px-3 py-1 rounded-full text-xs bg-[var(--wedding-beige)] text-[var(--wedding-text)] mb-3">

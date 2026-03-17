@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getFeaturedProducts } from '../data/products';
 import { useState } from 'react';
 import { Modal } from '../components/Modal';
+import { HoneymoonGoal } from '../components/HoneymoonGoal';
 import type { Product } from '../types';
 
 export function LandingPage() {
@@ -58,7 +59,10 @@ export function LandingPage() {
             >
               Ver Presentes
             </Button>
+
+            
           </div>
+          <HoneymoonGoal currentAmount={2350} goalAmount={8000}/>
         </div>
       </section>
 

@@ -1,21 +1,29 @@
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { CheckCircle, Home, ShoppingBag, Heart } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import { useEffect } from 'react';
+import { useCart } from '../contexts/CartContext';
 
 export function SuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
   const order = location.state?.order;
 
   useEffect(() => {
     if (!order) {
       navigate('/shopping');
+      return;
     }
-  }, [order, navigate]);
 
+  clearCart();
+    }, [order, navigate, clearCart]);
+    
   if (!order) return null;
+
+  const orderId = order._id || order.id;
+  const orderTotal = order.totalAmount ?? order.total ?? 0;
 
   return (
     <div className="min-h-[calc(100vh-160px)] bg-gradient-to-b from-[var(--wedding-beige)] to-[var(--wedding-offwhite)] py-12">
@@ -38,7 +46,7 @@ export function SuccessPage() {
               Pedido
             </p>
             <p className="text-2xl text-[var(--wedding-text)]">
-              #{order.id}
+              #{orderId}
             </p>
           </div>
 
@@ -46,22 +54,34 @@ export function SuccessPage() {
             <h3 className="text-lg mb-4 text-[var(--wedding-text)]">
               Resumo do presente
             </h3>
+
             <div className="space-y-2">
-              {order.items.map((item: any) => (
-                <div key={item.cartItemId} className="flex justify-between text-sm">
-                  <span className="text-[var(--wedding-text-light)]">
-                    {item.quantity}x {item.productName}
-                  </span>
-                  <span className="text-[var(--wedding-text)]">
-                    R$ {item.lineTotal.toFixed(2)}
-                  </span>
-                </div>
-              ))}
+              {order.items.map((item: any, index: number) => {
+                const itemTotal =
+                  item.lineTotal ??
+                  item.totalPrice ??
+                  (item.price ?? item.unitPrice ?? 0) * item.quantity;
+
+                return (
+                  <div
+                    key={item._id || item.id || `${item.productId}-${index}`}
+                    className="flex justify-between text-sm"
+                  >
+                    <span className="text-[var(--wedding-text-light)]">
+                      {item.quantity}x {item.productName}
+                    </span>
+                    <span className="text-[var(--wedding-text)]">
+                      R$ {itemTotal.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
+
             <div className="flex justify-between text-lg mt-4 pt-4 border-t border-[var(--wedding-beige)]">
               <span className="text-[var(--wedding-text)]">Total</span>
               <span className="text-[var(--wedding-text)]">
-                R$ {order.total.toFixed(2)}
+                R$ {orderTotal.toFixed(2)}
               </span>
             </div>
           </div>
@@ -106,9 +126,12 @@ export function SuccessPage() {
             <ShoppingBag className="w-5 h-5" />
             Escolher mais presentes
           </Button>
+
           <Button
             size="lg"
-            onClick={() => window.location.href = 'https://biancaefabio.com.br'}
+            onClick={() => {
+              window.location.href = 'https://biancaefabio.com.br';
+            }}
           >
             <Home className="w-5 h-5" />
             Ir para o site do casamento
