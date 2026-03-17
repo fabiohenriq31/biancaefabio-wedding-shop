@@ -6,6 +6,7 @@ import { User } from "../model/User";
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export async function googleLogin(req: Request, res: Response) {
+  console.log("POST /auth/google hit");
   try {
     const { credential } = req.body;
 
