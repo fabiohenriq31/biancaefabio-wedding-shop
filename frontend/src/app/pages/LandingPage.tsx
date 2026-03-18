@@ -1,21 +1,23 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Heart, ShoppingBag, Gift, MessageCircle } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { getFeaturedProducts } from '../data/products';
-import { useState } from 'react';
+import { getProducts } from '../services/productService';
 import { Modal } from '../components/Modal';
-import { HoneymoonGoal } from '../components/HoneymoonGoal';
 import type { Product } from '../types';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isLoggedIn } = useAuth();
-  const featuredProducts = getFeaturedProducts().slice(0, 6);
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const handleAddToCart = (product: Product) => {
     addToCart(product);
@@ -33,6 +35,30 @@ export function LandingPage() {
     }
   };
 
+  useEffect(() => {
+    async function loadFeaturedProducts() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const data = await getProducts();
+
+        const featured = data
+          .filter((product) => product.isActive && product.isFeatured)
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+          .slice(0, 6);
+
+        setFeaturedProducts(featured);
+      } catch {
+        setError('Não foi possível carregar os presentes em destaque.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadFeaturedProducts();
+  }, []);
+
   return (
     <div>
       {/* Hero Section */}
@@ -44,14 +70,15 @@ export function LandingPage() {
           <p className="text-xl text-[var(--wedding-text-light)] mb-8 max-w-3xl mx-auto">
             Criamos uma seleção de presentes simbólicos e divertidos para fazer parte da nossa nova história.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              onClick={handleEntrar}
-            >
-              <Gift className="w-5 h-5" />
-              Entrar para Presentear
-            </Button>
+            {!isLoggedIn && (
+              <Button size="lg" onClick={handleEntrar}>
+                <Gift className="w-5 h-5" />
+                Entrar para Presentear
+              </Button>
+            )}
+
             <Button
               variant="outline"
               size="lg"
@@ -59,10 +86,7 @@ export function LandingPage() {
             >
               Ver Presentes
             </Button>
-
-            
           </div>
-          <HoneymoonGoal currentAmount={2350} goalAmount={8000}/>
         </div>
       </section>
 
@@ -78,16 +102,30 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {featuredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-10 text-[var(--wedding-text-light)]">
+              Carregando produtos...
+            </div>
+          ) : error ? (
+            <div className="text-center py-10 text-red-500">
+              {error}
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product._id || product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 text-[var(--wedding-text-light)]">
+              Nenhum presente em destaque encontrado.
+            </div>
+          )}
 
           <div className="text-center">
             <Button
@@ -171,7 +209,7 @@ export function LandingPage() {
             Sua mensagem fará parte da nossa história e será guardada com muito carinho
           </p>
           <Button size="lg" onClick={handleEntrar}>
-            Começar agora
+            {isLoggedIn ? 'Ver presentes' : 'Começar agora'}
           </Button>
         </div>
       </section>
@@ -185,33 +223,59 @@ export function LandingPage() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <img
-                src={selectedProduct.imageUrl}
-                alt={selectedProduct.name}
-                className="w-full rounded-lg"
-              />
+              {selectedProduct.imageUrl ? (
+                <img
+                  src={selectedProduct.imageUrl}
+                  alt={selectedProduct.name}
+                  className="w-full h-80 object-cover rounded-lg"
+                />
+              ) : (
+                <div className="w-full h-80 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
+                  <span className="text-[var(--wedding-text-light)]">
+                    Presente simbólico
+                  </span>
+                </div>
+              )}
             </div>
+
             <div>
-              <h2 className="text-3xl mb-4 text-[var(--wedding-text)]">
-                {selectedProduct.name}
-              </h2>
-              <p className="text-[var(--wedding-text-light)] mb-6">
-                {selectedProduct.description}
-              </p>
-              <p className="text-3xl mb-6 text-[var(--wedding-text)]">
-                R$ {selectedProduct.price.toFixed(2)}
-              </p>
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={() => {
-                  handleAddToCart(selectedProduct);
-                  setSelectedProduct(null);
-                }}
-              >
-                <ShoppingBag className="w-5 h-5" />
-                Adicionar ao carrinho
-              </Button>
+              <div className="mb-4">
+                <span className="inline-block px-3 py-1 rounded-full text-xs bg-[var(--wedding-beige)] text-[var(--wedding-text)] mb-3">
+                  {selectedProduct.category}
+                </span>
+                <h2 className="text-3xl mb-3 text-[var(--wedding-text)]">
+                  {selectedProduct.name}
+                </h2>
+                <p className="text-[var(--wedding-text-light)] mb-6">
+                  {selectedProduct.description}
+                </p>
+              </div>
+
+              <div className="border-t border-[var(--wedding-beige)] pt-6">
+                <p className="text-3xl mb-6 text-[var(--wedding-text)]">
+                  R$ {selectedProduct.price.toFixed(2)}
+                </p>
+
+                <div className="space-y-3">
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={() => {
+                      handleAddToCart(selectedProduct);
+                      setSelectedProduct(null);
+                    }}
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Adicionar ao carrinho
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-[var(--wedding-beige)] rounded-lg">
+                <p className="text-sm text-[var(--wedding-text-light)] italic">
+                  "Seu presente nos ajudará a viver momentos especiais e criar memórias inesquecíveis juntos."
+                </p>
+              </div>
             </div>
           </div>
         </Modal>
