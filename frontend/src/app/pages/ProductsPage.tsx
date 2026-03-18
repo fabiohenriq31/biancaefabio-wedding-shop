@@ -193,61 +193,72 @@ export function ProductsPage() {
       </div>
 
       {selectedProduct && (
-        <Modal
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          size="lg"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <div className="w-full h-80 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                <span className="text-[var(--wedding-text-light)]">
-                  Presente simbólico
-                </span>
-              </div>
+          <Modal
+      isOpen={!!selectedProduct}
+      onClose={() => setSelectedProduct(null)}
+      size="lg"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          {selectedProduct.imageUrl ? (
+            <img
+              src={selectedProduct.imageUrl}
+              alt={selectedProduct.name}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/placeholder.jpg';
+              }}
+              className="w-full h-80 object-cover rounded-lg"
+            />
+          ) : (
+            <div className="w-full h-80 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
+              <span className="text-[var(--wedding-text-light)]">
+                Presente simbólico
+              </span>
             </div>
+          )}
+        </div>
 
-            <div>
-              <div className="mb-4">
-                <span className="inline-block px-3 py-1 rounded-full text-xs bg-[var(--wedding-beige)] text-[var(--wedding-text)] mb-3">
-                  {selectedProduct.category}
-                </span>
-                <h2 className="text-3xl mb-3 text-[var(--wedding-text)]">
-                  {selectedProduct.name}
-                </h2>
-                <p className="text-[var(--wedding-text-light)] mb-6">
-                  {selectedProduct.description}
-                </p>
-              </div>
+        <div>
+          <div className="mb-4">
+            <span className="inline-block px-3 py-1 rounded-full text-xs bg-[var(--wedding-beige)] text-[var(--wedding-text)] mb-3">
+              {selectedProduct.category}
+            </span>
+            <h2 className="text-3xl mb-3 text-[var(--wedding-text)]">
+              {selectedProduct.name}
+            </h2>
+            <p className="text-[var(--wedding-text-light)] mb-6">
+              {selectedProduct.description}
+            </p>
+          </div>
 
-              <div className="border-t border-[var(--wedding-beige)] pt-6">
-                <p className="text-3xl mb-6 text-[var(--wedding-text)]">
-                  R$ {selectedProduct.price.toFixed(2)}
-                </p>
+          <div className="border-t border-[var(--wedding-beige)] pt-6">
+            <p className="text-3xl mb-6 text-[var(--wedding-text)]">
+              R$ {selectedProduct.price.toFixed(2)}
+            </p>
 
-                <div className="space-y-3">
-                  <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={() => {
-                      handleAddToCart(selectedProduct);
-                      setSelectedProduct(null);
-                    }}
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    Adicionar ao carrinho
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-[var(--wedding-beige)] rounded-lg">
-                <p className="text-sm text-[var(--wedding-text-light)] italic">
-                  "Seu presente nos ajudará a viver momentos especiais e criar memórias inesquecíveis juntos."
-                </p>
-              </div>
+            <div className="space-y-3">
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  handleAddToCart(selectedProduct);
+                  setSelectedProduct(null);
+                }}
+              >
+                <ShoppingBag className="w-5 h-5" />
+                Adicionar ao carrinho
+              </Button>
             </div>
           </div>
-        </Modal>
+
+          <div className="mt-6 p-4 bg-[var(--wedding-beige)] rounded-lg">
+            <p className="text-sm text-[var(--wedding-text-light)] italic">
+              "Seu presente nos ajudará a viver momentos especiais e criar memórias inesquecíveis juntos."
+            </p>
+          </div>
+        </div>
+      </div>
+  </Modal>
       )}
     </div>
   );
