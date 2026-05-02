@@ -10,14 +10,32 @@ import paymentRoutes from "./routes/paymentRoutes";
 dotenv.config();
 
 const app = express();
-const allowedOrigins = (process.env.FRONTEND_URL || "")
+const defaultAllowedOrigins = [
+  "https://www.shoppingbiancaefabio.com.br",
+  "https://shoppingbiancaefabio.com.br",
+  "https://www.biancaefabio.com.br",
+  "https://biancaefabio.com.br",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
+const allowedOrigins = [
+  ...defaultAllowedOrigins,
+  ...(process.env.FRONTEND_URL || "")
   .split(",")
   .map((origin) => origin.trim())
-  .filter(Boolean);
+    .filter(Boolean),
+];
 
 app.use(
   cors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : undefined,
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+    },
     credentials: true,
   })
 );
