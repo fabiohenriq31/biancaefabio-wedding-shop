@@ -13,8 +13,12 @@ const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_URL,
+    origin: allowedOrigins.length > 0 ? allowedOrigins : undefined,
     credentials: true,
 }));
 app.use(express_1.default.json());

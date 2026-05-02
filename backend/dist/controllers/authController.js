@@ -9,6 +9,7 @@ const google_auth_library_1 = require("google-auth-library");
 const User_1 = require("../model/User");
 const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 async function googleLogin(req, res) {
+    console.log("POST /auth/google hit");
     try {
         const { credential } = req.body;
         if (!credential) {
