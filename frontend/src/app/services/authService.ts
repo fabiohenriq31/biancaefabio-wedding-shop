@@ -7,6 +7,7 @@ type GoogleLoginResponse = {
     name: string;
     email: string;
     avatarUrl?: string;
+    role?: 'user' | 'admin';
   };
 };
 
@@ -25,6 +26,27 @@ export async function loginWithGoogle(
 
   if (!response.ok) {
     throw new Error(data?.message || "Erro ao autenticar com Google");
+  }
+
+  return data;
+}
+
+export async function loginWithPassword(
+  email: string,
+  password: string
+): Promise<GoogleLoginResponse> {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Erro ao autenticar");
   }
 
   return data;

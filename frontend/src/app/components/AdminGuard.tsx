@@ -20,7 +20,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   const isAdmin = 
     !!user?.email &&
-    ALLOWED_ADMIN_EMAILS.includes(user.email.toLowerCase());
+    (user.role === 'admin' || ALLOWED_ADMIN_EMAILS.includes(user.email.toLowerCase()));
 
     useEffect(() => {
       if (!isLoggedIn){

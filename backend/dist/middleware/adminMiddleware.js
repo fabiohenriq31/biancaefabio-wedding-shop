@@ -10,7 +10,7 @@ function requireAdmin(req, res, next) {
     if (!userEmail) {
         return res.status(401).json({ message: "Usuário não autenticado." });
     }
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    if (req.user?.role !== "admin" && !ADMIN_EMAILS.includes(userEmail)) {
         return res.status(403).json({ message: "Acesso negado." });
     }
     next();

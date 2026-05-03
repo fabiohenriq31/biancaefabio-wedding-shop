@@ -5,6 +5,7 @@ type AuthUser = {
   name: string;
   email: string;
   avatarUrl?: string;
+  role?: 'user' | 'admin';
   createdAt?: string;
 };
 
