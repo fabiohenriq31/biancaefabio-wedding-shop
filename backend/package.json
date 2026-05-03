@@ -6,7 +6,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "ts-node src/seed.ts",
-    "create-admin": "ts-node src/createAdmin.ts"
+    "create-admin": "node dist/createAdmin.js"
   },
   "keywords": [],
   "author": "",
