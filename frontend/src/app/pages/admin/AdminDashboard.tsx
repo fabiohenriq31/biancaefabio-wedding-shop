@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, EyeOff, Package, ShoppingBag, Users, XCircle } from 'lucide-react';
+import { Camera, CheckCircle2, EyeOff, HandCoins, Package, ShoppingBag, Users, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminRequest } from '../../services/adminApi';
@@ -12,6 +12,13 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: number; 
       <p className="mt-2 text-3xl font-semibold text-[var(--wedding-text)]">{value}</p>
     </div>
   );
+}
+
+function money(value: number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value || 0);
 }
 
 export function AdminDashboard() {
@@ -53,6 +60,23 @@ export function AdminDashboard() {
             <StatCard label="Convidados no RSVP" value={summary.totalGuests} icon={Users} />
             <StatCard label="Presenças confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
             <StatCard label="Não confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
+            <StatCard label="Padrinhos/Madrinhas" value={summary.groomsmenGuests} icon={Users} />
+            <StatCard label="Fornecedores" value={summary.totalSuppliers} icon={HandCoins} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <p className="text-sm text-[var(--wedding-text-light)]">Custos de fornecedores</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalCost)}</p>
+            </div>
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <p className="text-sm text-[var(--wedding-text-light)]">Valores pagos</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalPaid)}</p>
+            </div>
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <p className="text-sm text-[var(--wedding-text-light)]">Saldo pendente</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalPending)}</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -81,12 +105,30 @@ export function AdminDashboard() {
                     <p className="font-medium text-[var(--wedding-text)]">{guest.name}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
                       {guest.email || 'Sem email'} · {guest.status === 'confirmed' ? 'Confirmado' : 'Não confirmado'}
+                      {' '}· {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
                     </p>
                   </div>
                 ))}
               </div>
               {summary.latestGuests.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhuma confirmação recebida ainda.</p>
+              )}
+            </section>
+
+            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimos fornecedores</h2>
+              <div className="space-y-4">
+                {summary.latestSuppliers.map((supplier) => (
+                  <div key={supplier._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
+                    <p className="font-medium text-[var(--wedding-text)]">{supplier.name}</p>
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      {supplier.category || 'Sem categoria'} · {money(supplier.totalCost)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {summary.latestSuppliers.length === 0 && (
+                <p className="text-[var(--wedding-text-light)]">Nenhum fornecedor cadastrado ainda.</p>
               )}
             </section>
 

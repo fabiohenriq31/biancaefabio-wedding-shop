@@ -13,6 +13,9 @@ function sanitizeText(value, maxLength = 500) {
         .trim()
         .slice(0, maxLength);
 }
+function parseGuestType(value) {
+    return value === "groomsman" ? "groomsman" : "guest";
+}
 async function createRsvp(req, res) {
     try {
         const name = sanitizeText(req.body.name, 120);
@@ -24,6 +27,7 @@ async function createRsvp(req, res) {
             email: sanitizeText(req.body.email, 180).toLowerCase(),
             companions: sanitizeText(req.body.companions, 400),
             message: sanitizeText(req.body.message, 800),
+            guestType: parseGuestType(req.body.guestType),
             isAttending: true,
             status: "confirmed",
         });
@@ -65,6 +69,7 @@ async function createAdminGuest(req, res) {
             email: sanitizeText(req.body.email, 180).toLowerCase(),
             companions: sanitizeText(req.body.companions, 400),
             message: sanitizeText(req.body.message, 800),
+            guestType: parseGuestType(req.body.guestType),
             isAttending: status === "confirmed",
             status,
         });

@@ -30,6 +30,7 @@ export function AdminGuestsPage() {
     email: '',
     companions: '',
     message: '',
+    guestType: 'guest' as 'guest' | 'groomsman',
     status: 'confirmed' as 'confirmed' | 'not_confirmed',
   });
 
@@ -90,6 +91,7 @@ export function AdminGuestsPage() {
         email: '',
         companions: '',
         message: '',
+        guestType: 'guest',
         status: 'confirmed',
       });
       setShowCreateForm(false);
@@ -210,6 +212,21 @@ export function AdminGuestsPage() {
                 <option value="not_confirmed">Não confirmado</option>
               </select>
             </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Tipo</span>
+              <select
+                value={newGuest.guestType}
+                onChange={(event) => setNewGuest((guest) => ({
+                  ...guest,
+                  guestType: event.target.value as 'guest' | 'groomsman',
+                }))}
+                className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+              >
+                <option value="guest">Convidado</option>
+                <option value="groomsman">Padrinho/Madrinha</option>
+              </select>
+            </label>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -286,6 +303,9 @@ export function AdminGuestsPage() {
                       isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                     }`}>
                       {isConfirmed ? 'Confirmado' : 'Não confirmado'}
+                    </span>
+                    <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">
+                      {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
                     </span>
                   </div>
                   <p className="text-sm text-[var(--wedding-text-light)]">

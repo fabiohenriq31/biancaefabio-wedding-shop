@@ -8,6 +8,7 @@ export type CreateGuestPayload = {
   email?: string;
   companions?: string;
   message?: string;
+  guestType: 'guest' | 'groomsman';
   status: 'confirmed' | 'not_confirmed';
 };
 

@@ -13,6 +13,7 @@ import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminGuestsPage } from './pages/admin/AdminGuestsPage';
+import { AdminSuppliersPage } from './pages/admin/AdminSuppliersPage';
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'produtos', Component: AdminProductsPage },
       { path: 'pedidos', Component: AdminOrdersPage },
       { path: 'convidados', Component: AdminGuestsPage },
+      { path: 'fornecedores', Component: AdminSuppliersPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },
     ],
   },

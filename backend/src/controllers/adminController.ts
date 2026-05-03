@@ -3,6 +3,23 @@ import { GuestPhoto } from "../model/GuestPhoto";
 import { Guest } from "../model/Guest";
 import { Order } from "../model/Order";
 import { Product } from "../model/Product";
+import { Supplier } from "../model/Supplier";
+
+function getSupplierTotals(suppliers: any[]) {
+  return suppliers.reduce(
+    (totals, supplier) => {
+      const paid = (supplier.payments || []).reduce(
+        (sum: number, payment: any) => sum + Number(payment.amount || 0),
+        0
+      );
+
+      totals.totalCost += Number(supplier.totalCost || 0);
+      totals.totalPaid += paid;
+      return totals;
+    },
+    { totalCost: 0, totalPaid: 0 }
+  );
+}
 
 export async function getAdminSummary(_req: Request, res: Response) {
   try {
@@ -14,6 +31,9 @@ export async function getAdminSummary(_req: Request, res: Response) {
       totalGuests,
       confirmedGuests,
       notConfirmedGuests,
+      groomsmenGuests,
+      regularGuests,
+      suppliers,
       latestPhotos,
       latestOrders,
       latestGuests,
@@ -25,10 +45,14 @@ export async function getAdminSummary(_req: Request, res: Response) {
       Guest.countDocuments(),
       Guest.countDocuments({ status: "confirmed" }),
       Guest.countDocuments({ status: "not_confirmed" }),
+      Guest.countDocuments({ guestType: "groomsman" }),
+      Guest.countDocuments({ guestType: "guest" }),
+      Supplier.find().sort({ createdAt: -1 }),
       GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
       Order.find().sort({ createdAt: -1 }).limit(6),
       Guest.find().sort({ createdAt: -1 }).limit(6),
     ]);
+    const supplierTotals = getSupplierTotals(suppliers);
 
     return res.json({
       activeProducts,
@@ -38,6 +62,13 @@ export async function getAdminSummary(_req: Request, res: Response) {
       totalGuests,
       confirmedGuests,
       notConfirmedGuests,
+      groomsmenGuests,
+      regularGuests,
+      totalSuppliers: suppliers.length,
+      supplierTotalCost: supplierTotals.totalCost,
+      supplierTotalPaid: supplierTotals.totalPaid,
+      supplierTotalPending: Math.max(supplierTotals.totalCost - supplierTotals.totalPaid, 0),
+      latestSuppliers: suppliers.slice(0, 6),
       latestPhotos,
       latestOrders,
       latestGuests,

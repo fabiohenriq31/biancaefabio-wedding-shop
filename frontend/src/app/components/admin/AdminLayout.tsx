@@ -1,4 +1,4 @@
-import { Camera, ClipboardList, Gift, LayoutDashboard, Package, Users } from 'lucide-react';
+import { Camera, ClipboardList, Gift, HandCoins, LayoutDashboard, Package, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 
 const navItems = [
@@ -6,6 +6,7 @@ const navItems = [
   { to: '/admin/produtos', label: 'Produtos', icon: Package },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ClipboardList },
   { to: '/admin/convidados', label: 'Lista de convidados', icon: Users },
+  { to: '/admin/fornecedores', label: 'Fornecedores', icon: HandCoins },
   { to: '/admin/fotos', label: 'Fotos dos convidados', icon: Camera },
 ];
 

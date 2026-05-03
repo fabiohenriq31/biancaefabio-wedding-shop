@@ -10,6 +10,11 @@ const guestSchema = new mongoose_1.default.Schema({
     email: { type: String, default: "" },
     companions: { type: String, default: "" },
     message: { type: String, default: "" },
+    guestType: {
+        type: String,
+        enum: ["guest", "groomsman"],
+        default: "guest",
+    },
     isAttending: { type: Boolean, default: true },
     status: {
         type: String,

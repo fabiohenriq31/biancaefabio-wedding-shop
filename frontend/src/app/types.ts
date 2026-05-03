@@ -100,12 +100,20 @@ export interface AdminSummary {
   totalGuests: number;
   confirmedGuests: number;
   notConfirmedGuests: number;
+  groomsmenGuests: number;
+  regularGuests: number;
+  totalSuppliers: number;
+  supplierTotalCost: number;
+  supplierTotalPaid: number;
+  supplierTotalPending: number;
+  latestSuppliers: Supplier[];
   latestPhotos: GuestPhoto[];
   latestOrders: Order[];
   latestGuests: Guest[];
 }
 
 export type GuestStatus = 'confirmed' | 'not_confirmed';
+export type GuestType = 'guest' | 'groomsman';
 
 export interface Guest {
   _id: string;
@@ -113,8 +121,28 @@ export interface Guest {
   email?: string;
   companions?: string;
   message?: string;
+  guestType: GuestType;
   isAttending: boolean;
   status: GuestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupplierPayment {
+  _id: string;
+  amount: number;
+  paidAt: string;
+  note?: string;
+}
+
+export interface Supplier {
+  _id: string;
+  name: string;
+  category?: string;
+  contact?: string;
+  notes?: string;
+  totalCost: number;
+  payments: SupplierPayment[];
   createdAt: string;
   updatedAt: string;
 }

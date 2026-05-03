@@ -5,9 +5,18 @@ const GuestPhoto_1 = require("../model/GuestPhoto");
 const Guest_1 = require("../model/Guest");
 const Order_1 = require("../model/Order");
 const Product_1 = require("../model/Product");
+const Supplier_1 = require("../model/Supplier");
+function getSupplierTotals(suppliers) {
+    return suppliers.reduce((totals, supplier) => {
+        const paid = (supplier.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        totals.totalCost += Number(supplier.totalCost || 0);
+        totals.totalPaid += paid;
+        return totals;
+    }, { totalCost: 0, totalPaid: 0 });
+}
 async function getAdminSummary(_req, res) {
     try {
-        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, notConfirmedGuests, latestPhotos, latestOrders, latestGuests,] = await Promise.all([
+        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, notConfirmedGuests, groomsmenGuests, regularGuests, suppliers, latestPhotos, latestOrders, latestGuests,] = await Promise.all([
             Product_1.Product.countDocuments({ isActive: true }),
             Order_1.Order.countDocuments(),
             GuestPhoto_1.GuestPhoto.countDocuments(),
@@ -15,10 +24,14 @@ async function getAdminSummary(_req, res) {
             Guest_1.Guest.countDocuments(),
             Guest_1.Guest.countDocuments({ status: "confirmed" }),
             Guest_1.Guest.countDocuments({ status: "not_confirmed" }),
+            Guest_1.Guest.countDocuments({ guestType: "groomsman" }),
+            Guest_1.Guest.countDocuments({ guestType: "guest" }),
+            Supplier_1.Supplier.find().sort({ createdAt: -1 }),
             GuestPhoto_1.GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
             Order_1.Order.find().sort({ createdAt: -1 }).limit(6),
             Guest_1.Guest.find().sort({ createdAt: -1 }).limit(6),
         ]);
+        const supplierTotals = getSupplierTotals(suppliers);
         return res.json({
             activeProducts,
             totalOrders,
@@ -27,6 +40,13 @@ async function getAdminSummary(_req, res) {
             totalGuests,
             confirmedGuests,
             notConfirmedGuests,
+            groomsmenGuests,
+            regularGuests,
+            totalSuppliers: suppliers.length,
+            supplierTotalCost: supplierTotals.totalCost,
+            supplierTotalPaid: supplierTotals.totalPaid,
+            supplierTotalPending: Math.max(supplierTotals.totalCost - supplierTotals.totalPaid, 0),
+            latestSuppliers: suppliers.slice(0, 6),
             latestPhotos,
             latestOrders,
             latestGuests,
