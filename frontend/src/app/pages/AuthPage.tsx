@@ -1,11 +1,13 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { loginWithGoogle } from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 export function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/shopping/checkout';
 
   return (
     <div className="min-h-[calc(100vh-160px)] flex items-center justify-center bg-[var(--wedding-offwhite)] p-6">
@@ -24,7 +26,7 @@ export function AuthPage() {
 
               const data = await loginWithGoogle(credentialResponse.credential);
               login(data);
-              navigate("/shopping/checkout");
+              navigate(redirectTo);
             } catch (error) {
               console.error(error);
 

@@ -8,6 +8,10 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminProtectedPage } from './components/AdminProtectedPage';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
+import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
+import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 
 export const router = createBrowserRouter([
   {
@@ -25,8 +29,21 @@ export const router = createBrowserRouter([
       { path: 'orders', Component: ProfilePage },
       {
         path: 'admin',
-        Component: AdminProtectedPage,
+        loader: () => {
+          window.location.href = '/admin';
+          return null;
+        },
       },
+    ],
+  },
+  {
+    path: '/admin',
+    Component: AdminProtectedPage,
+    children: [
+      { index: true, Component: AdminDashboard },
+      { path: 'produtos', Component: AdminProductsPage },
+      { path: 'pedidos', Component: AdminOrdersPage },
+      { path: 'fotos', Component: AdminGuestPhotosPage },
     ],
   },
   {

@@ -11,6 +11,8 @@ const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
+const guestPhotosRoutes_1 = __importDefault(require("./routes/guestPhotosRoutes"));
+const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const defaultAllowedOrigins = [
@@ -42,9 +44,27 @@ app.get("/shopping", (_req, res) => {
     res.json({ ok: true, message: "Bianca e Fábio Shopping API" });
 });
 app.use("/products", productRoutes_1.default);
+app.use("/guest-photos", guestPhotosRoutes_1.default);
+app.use("/admin", adminRoutes_1.default);
+app.use("/api/products", productRoutes_1.default);
+app.use("/api/guest-photos", guestPhotosRoutes_1.default);
+app.use("/api/admin", adminRoutes_1.default);
 app.use("/auth", authRoutes_1.default);
+app.use("/api/auth", authRoutes_1.default);
 app.use("/orders", orderRoutes_1.default);
+app.use("/api/orders", orderRoutes_1.default);
 app.use("/payments", paymentRoutes_1.default);
+app.use("/api/payments", paymentRoutes_1.default);
+app.use((error, _req, res, _next) => {
+    if (error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "Imagem maior que 15 MB." });
+    }
+    if (error.message === "Formato de imagem não permitido.") {
+        return res.status(400).json({ message: error.message });
+    }
+    console.error("Erro não tratado:", error);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+});
 const port = Number(process.env.PORT) || 3001;
 (0, db_1.connectDatabase)().then(() => {
     app.listen(port, "0.0.0.0", () => {

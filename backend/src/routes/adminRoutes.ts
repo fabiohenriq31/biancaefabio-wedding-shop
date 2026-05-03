@@ -1,0 +1,22 @@
+import { Router } from "express";
+import { getAdminSummary } from "../controllers/adminController";
+import {
+  getAdminGuestPhotos,
+  hideGuestPhoto,
+  removeGuestPhoto,
+  showGuestPhoto,
+} from "../controllers/guestPhotosController";
+import { requireAdmin } from "../middleware/adminMiddleware";
+import { requireAuth } from "../middleware/authMiddleware";
+
+const router = Router();
+
+router.use(requireAuth, requireAdmin);
+
+router.get("/summary", getAdminSummary);
+router.get("/guest-photos", getAdminGuestPhotos);
+router.patch("/guest-photos/:id/hide", hideGuestPhoto);
+router.patch("/guest-photos/:id/show", showGuestPhoto);
+router.delete("/guest-photos/:id", removeGuestPhoto);
+
+export default router;

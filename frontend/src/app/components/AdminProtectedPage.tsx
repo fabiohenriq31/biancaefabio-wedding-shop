@@ -1,10 +1,10 @@
 import { AdminGuard } from '../components/AdminGuard';
-import { AdminPage } from '../pages/AdminPage';
+import { AdminLayout } from './admin/AdminLayout';
 
 export function AdminProtectedPage() {
   return (
     <AdminGuard>
-      <AdminPage />
+      <AdminLayout />
     </AdminGuard>
   );
 }

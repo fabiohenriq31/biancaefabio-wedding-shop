@@ -77,3 +77,26 @@ export interface Order {
   customerEmail: string;
   customerPhone?: string;
 }
+
+export type GuestPhotoStatus = 'approved' | 'hidden';
+
+export interface GuestPhoto {
+  _id: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  publicId: string;
+  guestName: string;
+  isApproved: boolean;
+  status: GuestPhotoStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminSummary {
+  activeProducts: number;
+  totalOrders: number;
+  totalPhotos: number;
+  hiddenPhotos: number;
+  latestPhotos: GuestPhoto[];
+  latestOrders: Order[];
+}

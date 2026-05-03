@@ -6,6 +6,8 @@ import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/authRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
+import guestPhotosRoutes from "./routes/guestPhotosRoutes";
+import adminRoutes from "./routes/adminRoutes";
 
 dotenv.config();
 
@@ -47,12 +49,41 @@ app.get("/shopping", (_req,res) => {
 });
 
 app.use("/products", productRoutes);
+app.use("/guest-photos", guestPhotosRoutes);
+app.use("/admin", adminRoutes);
+
+app.use("/api/products", productRoutes);
+app.use("/api/guest-photos", guestPhotosRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use("/orders", orderRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.use("/payments", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
+
+app.use(
+  (
+    error: Error & { code?: string },
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ message: "Imagem maior que 15 MB." });
+    }
+
+    if (error.message === "Formato de imagem não permitido.") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    console.error("Erro não tratado:", error);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+  }
+);
 
 const port = Number(process.env.PORT) || 3001;
 
