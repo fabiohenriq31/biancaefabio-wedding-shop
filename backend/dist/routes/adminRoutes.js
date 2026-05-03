@@ -10,6 +10,7 @@ const router = (0, express_1.Router)();
 router.use(authMiddleware_1.requireAuth, adminMiddleware_1.requireAdmin);
 router.get("/summary", adminController_1.getAdminSummary);
 router.get("/guests", guestController_1.getAdminGuests);
+router.post("/guests", guestController_1.createAdminGuest);
 router.patch("/guests/:id/confirm", guestController_1.confirmGuest);
 router.patch("/guests/:id/unconfirm", guestController_1.unconfirmGuest);
 router.get("/guest-photos", guestPhotosController_1.getAdminGuestPhotos);

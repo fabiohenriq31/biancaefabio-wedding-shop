@@ -53,6 +53,32 @@ export async function getAdminGuests(req: Request, res: Response) {
   }
 }
 
+export async function createAdminGuest(req: Request, res: Response) {
+  try {
+    const name = sanitizeText(req.body.name, 120);
+
+    if (!name) {
+      return res.status(400).json({ message: "Nome é obrigatório." });
+    }
+
+    const status = req.body.status === "not_confirmed" ? "not_confirmed" : "confirmed";
+
+    const guest = await Guest.create({
+      name,
+      email: sanitizeText(req.body.email, 180).toLowerCase(),
+      companions: sanitizeText(req.body.companions, 400),
+      message: sanitizeText(req.body.message, 800),
+      isAttending: status === "confirmed",
+      status,
+    });
+
+    return res.status(201).json(guest);
+  } catch (error) {
+    console.error("Erro ao criar convidado:", error);
+    return res.status(500).json({ message: "Erro ao criar convidado." });
+  }
+}
+
 export async function confirmGuest(req: Request, res: Response) {
   try {
     const guest = await Guest.findByIdAndUpdate(

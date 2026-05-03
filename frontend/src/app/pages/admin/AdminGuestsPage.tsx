@@ -1,8 +1,9 @@
-import { CheckCircle2, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Plus, Search, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   confirmGuest,
+  createAdminGuest,
   getAdminGuests,
   unconfirmGuest,
   type GuestFilter,
@@ -22,6 +23,15 @@ export function AdminGuestsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newGuest, setNewGuest] = useState({
+    name: '',
+    email: '',
+    companions: '',
+    message: '',
+    status: 'confirmed' as 'confirmed' | 'not_confirmed',
+  });
 
   async function loadGuests() {
     if (!token) return;
@@ -66,6 +76,32 @@ export function AdminGuestsPage() {
     }
   }
 
+  async function handleCreateGuest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token) return;
+
+    setIsCreating(true);
+
+    try {
+      await createAdminGuest(token, newGuest);
+      setNewGuest({
+        name: '',
+        email: '',
+        companions: '',
+        message: '',
+        status: 'confirmed',
+      });
+      setShowCreateForm(false);
+      setFilter('all');
+      await loadGuests();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao adicionar convidado');
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
@@ -77,23 +113,123 @@ export function AdminGuestsPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {filters.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setFilter(item.value)}
-              className={`rounded-full px-4 py-2 text-sm ${
-                filter === item.value
-                  ? 'bg-[var(--wedding-text)] text-white'
-                  : 'bg-white text-[var(--wedding-text)] border border-[var(--wedding-beige)]'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3 sm:items-end">
+          <button
+            type="button"
+            onClick={() => setShowCreateForm((value) => !value)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--wedding-text)] px-5 py-3 text-sm text-white"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar convidado
+          </button>
+
+          <div className="flex flex-wrap gap-2">
+            {filters.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setFilter(item.value)}
+                className={`rounded-full px-4 py-2 text-sm ${
+                  filter === item.value
+                    ? 'bg-[var(--wedding-text)] text-white'
+                    : 'bg-white text-[var(--wedding-text)] border border-[var(--wedding-beige)]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {showCreateForm && (
+        <form
+          onSubmit={handleCreateGuest}
+          className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm"
+        >
+          <div className="mb-5">
+            <h2 className="text-2xl text-[var(--wedding-text)]">Adicionar convidado</h2>
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Inclua manualmente um convidado na lista e escolha o status de presença.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Nome</span>
+              <input
+                type="text"
+                value={newGuest.name}
+                onChange={(event) => setNewGuest((guest) => ({ ...guest, name: event.target.value }))}
+                className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Email</span>
+              <input
+                type="email"
+                value={newGuest.email}
+                onChange={(event) => setNewGuest((guest) => ({ ...guest, email: event.target.value }))}
+                className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+              />
+            </label>
+
+            <label className="block md:col-span-2">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Acompanhantes</span>
+              <input
+                type="text"
+                value={newGuest.companions}
+                onChange={(event) => setNewGuest((guest) => ({ ...guest, companions: event.target.value }))}
+                className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                placeholder="Ex: Maria, João e Ana"
+              />
+            </label>
+
+            <label className="block md:col-span-2">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Observação</span>
+              <textarea
+                value={newGuest.message}
+                onChange={(event) => setNewGuest((guest) => ({ ...guest, message: event.target.value }))}
+                className="min-h-24 w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm text-[var(--wedding-text)]">Status</span>
+              <select
+                value={newGuest.status}
+                onChange={(event) => setNewGuest((guest) => ({
+                  ...guest,
+                  status: event.target.value as 'confirmed' | 'not_confirmed',
+                }))}
+                className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+              >
+                <option value="confirmed">Confirmado</option>
+                <option value="not_confirmed">Não confirmado</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="submit"
+              disabled={isCreating}
+              className="rounded-lg bg-[var(--wedding-text)] px-5 py-3 text-sm text-white disabled:opacity-60"
+            >
+              {isCreating ? 'Adicionando...' : 'Salvar convidado'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(false)}
+              className="rounded-lg border border-[var(--wedding-beige)] px-5 py-3 text-sm text-[var(--wedding-text)]"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">

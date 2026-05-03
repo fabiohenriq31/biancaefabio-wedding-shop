@@ -2,6 +2,7 @@ import { Router } from "express";
 import { getAdminSummary } from "../controllers/adminController";
 import {
   confirmGuest,
+  createAdminGuest,
   getAdminGuests,
   unconfirmGuest,
 } from "../controllers/guestController";
@@ -20,6 +21,7 @@ router.use(requireAuth, requireAdmin);
 
 router.get("/summary", getAdminSummary);
 router.get("/guests", getAdminGuests);
+router.post("/guests", createAdminGuest);
 router.patch("/guests/:id/confirm", confirmGuest);
 router.patch("/guests/:id/unconfirm", unconfirmGuest);
 router.get("/guest-photos", getAdminGuestPhotos);

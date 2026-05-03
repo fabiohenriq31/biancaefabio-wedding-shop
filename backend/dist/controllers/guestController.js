@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRsvp = createRsvp;
 exports.getAdminGuests = getAdminGuests;
+exports.createAdminGuest = createAdminGuest;
 exports.confirmGuest = confirmGuest;
 exports.unconfirmGuest = unconfirmGuest;
 const Guest_1 = require("../model/Guest");
@@ -50,6 +51,28 @@ async function getAdminGuests(req, res) {
     catch (error) {
         console.error("Erro ao buscar convidados:", error);
         return res.status(500).json({ message: "Erro ao buscar convidados." });
+    }
+}
+async function createAdminGuest(req, res) {
+    try {
+        const name = sanitizeText(req.body.name, 120);
+        if (!name) {
+            return res.status(400).json({ message: "Nome é obrigatório." });
+        }
+        const status = req.body.status === "not_confirmed" ? "not_confirmed" : "confirmed";
+        const guest = await Guest_1.Guest.create({
+            name,
+            email: sanitizeText(req.body.email, 180).toLowerCase(),
+            companions: sanitizeText(req.body.companions, 400),
+            message: sanitizeText(req.body.message, 800),
+            isAttending: status === "confirmed",
+            status,
+        });
+        return res.status(201).json(guest);
+    }
+    catch (error) {
+        console.error("Erro ao criar convidado:", error);
+        return res.status(500).json({ message: "Erro ao criar convidado." });
     }
 }
 async function confirmGuest(req, res) {
