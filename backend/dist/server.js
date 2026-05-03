@@ -13,6 +13,7 @@ const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const guestPhotosRoutes_1 = __importDefault(require("./routes/guestPhotosRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
+const guestRoutes_1 = __importDefault(require("./routes/guestRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const defaultAllowedOrigins = [
@@ -45,9 +46,11 @@ app.get("/shopping", (_req, res) => {
 });
 app.use("/products", productRoutes_1.default);
 app.use("/guest-photos", guestPhotosRoutes_1.default);
+app.use("/rsvp", guestRoutes_1.default);
 app.use("/admin", adminRoutes_1.default);
 app.use("/api/products", productRoutes_1.default);
 app.use("/api/guest-photos", guestPhotosRoutes_1.default);
+app.use("/api/rsvp", guestRoutes_1.default);
 app.use("/api/admin", adminRoutes_1.default);
 app.use("/auth", authRoutes_1.default);
 app.use("/api/auth", authRoutes_1.default);

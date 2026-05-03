@@ -12,6 +12,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
+import { AdminGuestsPage } from './pages/admin/AdminGuestsPage';
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
       { index: true, Component: AdminDashboard },
       { path: 'produtos', Component: AdminProductsPage },
       { path: 'pedidos', Component: AdminOrdersPage },
+      { path: 'convidados', Component: AdminGuestsPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },
     ],
   },

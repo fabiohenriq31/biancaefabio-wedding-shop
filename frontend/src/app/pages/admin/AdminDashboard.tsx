@@ -1,4 +1,4 @@
-import { Camera, EyeOff, Package, ShoppingBag } from 'lucide-react';
+import { Camera, CheckCircle2, EyeOff, Package, ShoppingBag, Users, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminRequest } from '../../services/adminApi';
@@ -50,6 +50,9 @@ export function AdminDashboard() {
             <StatCard label="Pedidos" value={summary.totalOrders} icon={ShoppingBag} />
             <StatCard label="Fotos enviadas" value={summary.totalPhotos} icon={Camera} />
             <StatCard label="Fotos ocultadas" value={summary.hiddenPhotos} icon={EyeOff} />
+            <StatCard label="Convidados no RSVP" value={summary.totalGuests} icon={Users} />
+            <StatCard label="Presenças confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
+            <StatCard label="Não confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -67,6 +70,23 @@ export function AdminDashboard() {
               </div>
               {summary.latestPhotos.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhuma foto enviada ainda.</p>
+              )}
+            </section>
+
+            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimos convidados</h2>
+              <div className="space-y-4">
+                {summary.latestGuests.map((guest) => (
+                  <div key={guest._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
+                    <p className="font-medium text-[var(--wedding-text)]">{guest.name}</p>
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      {guest.email || 'Sem email'} · {guest.status === 'confirmed' ? 'Confirmado' : 'Não confirmado'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {summary.latestGuests.length === 0 && (
+                <p className="text-[var(--wedding-text-light)]">Nenhuma confirmação recebida ainda.</p>
               )}
             </section>
 

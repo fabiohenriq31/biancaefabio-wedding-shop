@@ -2,12 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController_1 = require("../controllers/adminController");
+const guestController_1 = require("../controllers/guestController");
 const guestPhotosController_1 = require("../controllers/guestPhotosController");
 const adminMiddleware_1 = require("../middleware/adminMiddleware");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.requireAuth, adminMiddleware_1.requireAdmin);
 router.get("/summary", adminController_1.getAdminSummary);
+router.get("/guests", guestController_1.getAdminGuests);
+router.patch("/guests/:id/confirm", guestController_1.confirmGuest);
+router.patch("/guests/:id/unconfirm", guestController_1.unconfirmGuest);
 router.get("/guest-photos", guestPhotosController_1.getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", guestPhotosController_1.hideGuestPhoto);
 router.patch("/guest-photos/:id/show", guestPhotosController_1.showGuestPhoto);

@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { getAdminSummary } from "../controllers/adminController";
 import {
+  confirmGuest,
+  getAdminGuests,
+  unconfirmGuest,
+} from "../controllers/guestController";
+import {
   getAdminGuestPhotos,
   hideGuestPhoto,
   removeGuestPhoto,
@@ -14,6 +19,9 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 router.get("/summary", getAdminSummary);
+router.get("/guests", getAdminGuests);
+router.patch("/guests/:id/confirm", confirmGuest);
+router.patch("/guests/:id/unconfirm", unconfirmGuest);
 router.get("/guest-photos", getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", hideGuestPhoto);
 router.patch("/guest-photos/:id/show", showGuestPhoto);

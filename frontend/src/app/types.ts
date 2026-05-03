@@ -97,6 +97,24 @@ export interface AdminSummary {
   totalOrders: number;
   totalPhotos: number;
   hiddenPhotos: number;
+  totalGuests: number;
+  confirmedGuests: number;
+  notConfirmedGuests: number;
   latestPhotos: GuestPhoto[];
   latestOrders: Order[];
+  latestGuests: Guest[];
+}
+
+export type GuestStatus = 'confirmed' | 'not_confirmed';
+
+export interface Guest {
+  _id: string;
+  name: string;
+  email?: string;
+  companions?: string;
+  message?: string;
+  isAttending: boolean;
+  status: GuestStatus;
+  createdAt: string;
+  updatedAt: string;
 }
