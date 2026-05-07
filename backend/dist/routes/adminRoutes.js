@@ -18,6 +18,7 @@ router.patch("/guests/:id/unconfirm", guestController_1.unconfirmGuest);
 router.delete("/guests/:id", guestController_1.deleteGuest);
 router.get("/suppliers", supplierController_1.getAdminSuppliers);
 router.post("/suppliers", supplierController_1.createSupplier);
+router.patch("/suppliers/:id", supplierController_1.updateSupplier);
 router.post("/suppliers/:id/payments", supplierController_1.addSupplierPayment);
 router.delete("/suppliers/:id", supplierController_1.removeSupplier);
 router.get("/guest-photos", guestPhotosController_1.getAdminGuestPhotos);

@@ -19,6 +19,7 @@ import {
   createSupplier,
   getAdminSuppliers,
   removeSupplier,
+  updateSupplier,
 } from "../controllers/supplierController";
 import { requireAdmin } from "../middleware/adminMiddleware";
 import { requireAuth } from "../middleware/authMiddleware";
@@ -36,6 +37,7 @@ router.patch("/guests/:id/unconfirm", unconfirmGuest);
 router.delete("/guests/:id", deleteGuest);
 router.get("/suppliers", getAdminSuppliers);
 router.post("/suppliers", createSupplier);
+router.patch("/suppliers/:id", updateSupplier);
 router.post("/suppliers/:id/payments", addSupplierPayment);
 router.delete("/suppliers/:id", removeSupplier);
 router.get("/guest-photos", getAdminGuestPhotos);

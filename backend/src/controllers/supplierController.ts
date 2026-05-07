@@ -96,6 +96,40 @@ export async function addSupplierPayment(req: Request, res: Response) {
   }
 }
 
+export async function updateSupplier(req: Request, res: Response) {
+  try {
+    const name = sanitizeText(req.body.name, 140);
+    const totalCost = parseAmount(req.body.totalCost);
+    const staffCount = parseCount(req.body.staffCount);
+
+    if (!name) {
+      return res.status(400).json({ message: "Nome do fornecedor Ã© obrigatÃ³rio." });
+    }
+
+    const supplier = await Supplier.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        totalCost,
+        category: sanitizeText(req.body.category, 100),
+        contact: sanitizeText(req.body.contact, 180),
+        notes: sanitizeText(req.body.notes, 800),
+        staffCount,
+      },
+      { new: true }
+    );
+
+    if (!supplier) {
+      return res.status(404).json({ message: "Fornecedor nÃ£o encontrado." });
+    }
+
+    return res.json(supplier);
+  } catch (error) {
+    console.error("Erro ao atualizar fornecedor:", error);
+    return res.status(500).json({ message: "Erro ao atualizar fornecedor." });
+  }
+}
+
 export async function removeSupplier(req: Request, res: Response) {
   try {
     const supplier = await Supplier.findByIdAndDelete(req.params.id);

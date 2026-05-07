@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -6,6 +6,7 @@ import {
   createSupplier,
   deleteSupplier,
   getAdminSuppliers,
+  updateSupplier,
 } from '../../services/adminSuppliersApi';
 import type { Supplier } from '../../types';
 
@@ -29,7 +30,16 @@ export function AdminSuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [paymentBySupplier, setPaymentBySupplier] = useState<Record<string, { amount: string; note: string }>>({});
+  const [editSupplier, setEditSupplier] = useState({
+    name: '',
+    category: '',
+    contact: '',
+    notes: '',
+    staffCount: '',
+    totalCost: '',
+  });
   const [newSupplier, setNewSupplier] = useState({
     name: '',
     category: '',
@@ -91,6 +101,47 @@ export function AdminSuppliersPage() {
       await loadSuppliers();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao criar fornecedor');
+    }
+  }
+
+  function startEditingSupplier(supplier: Supplier) {
+    setEditingSupplierId(supplier._id);
+    setEditSupplier({
+      name: supplier.name || '',
+      category: supplier.category || '',
+      contact: supplier.contact || '',
+      notes: supplier.notes || '',
+      staffCount: String(supplier.staffCount || 0),
+      totalCost: String(supplier.totalCost || 0),
+    });
+  }
+
+  function cancelEditingSupplier() {
+    setEditingSupplierId(null);
+    setEditSupplier({
+      name: '',
+      category: '',
+      contact: '',
+      notes: '',
+      staffCount: '',
+      totalCost: '',
+    });
+  }
+
+  async function handleUpdateSupplier(event: React.FormEvent<HTMLFormElement>, supplierId: string) {
+    event.preventDefault();
+    if (!token) return;
+
+    try {
+      await updateSupplier(token, supplierId, {
+        ...editSupplier,
+        staffCount: Number(editSupplier.staffCount || 0),
+        totalCost: Number(editSupplier.totalCost || 0),
+      });
+      cancelEditingSupplier();
+      await loadSuppliers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao atualizar fornecedor');
     }
   }
 
@@ -203,10 +254,52 @@ export function AdminSuppliersPage() {
                     {supplier.contact && <p className="mt-1 text-sm text-[var(--wedding-text-light)]">{supplier.contact}</p>}
                     {supplier.notes && <p className="mt-3 text-sm text-[var(--wedding-text)]">{supplier.notes}</p>}
                   </div>
-                  <button type="button" onClick={() => handleDelete(supplier)} className="h-fit rounded-lg border border-red-100 px-3 py-2 text-red-700">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex h-fit gap-2">
+                    {editingSupplierId === supplier._id ? (
+                      <button
+                        type="button"
+                        onClick={cancelEditingSupplier}
+                        className="rounded-lg border border-[var(--wedding-beige)] px-3 py-2 text-[var(--wedding-text)]"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startEditingSupplier(supplier)}
+                        className="rounded-lg border border-[var(--wedding-beige)] px-3 py-2 text-[var(--wedding-text)]"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button type="button" onClick={() => handleDelete(supplier)} className="rounded-lg border border-red-100 px-3 py-2 text-red-700">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
+
+                {editingSupplierId === supplier._id && (
+                  <form
+                    onSubmit={(event) => handleUpdateSupplier(event, supplier._id)}
+                    className="mt-5 rounded-lg border border-[var(--wedding-beige)] bg-[#fcfaf6] p-5"
+                  >
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <input className="rounded-lg bg-white px-4 py-3 outline-none" placeholder="Nome" required value={editSupplier.name} onChange={(e) => setEditSupplier((s) => ({ ...s, name: e.target.value }))} />
+                      <input className="rounded-lg bg-white px-4 py-3 outline-none" placeholder="Categoria" value={editSupplier.category} onChange={(e) => setEditSupplier((s) => ({ ...s, category: e.target.value }))} />
+                      <input className="rounded-lg bg-white px-4 py-3 outline-none" placeholder="Contato" value={editSupplier.contact} onChange={(e) => setEditSupplier((s) => ({ ...s, contact: e.target.value }))} />
+                      <input type="number" min="0" step="1" className="rounded-lg bg-white px-4 py-3 outline-none" placeholder="Numero de funcionarios" value={editSupplier.staffCount} onChange={(e) => setEditSupplier((s) => ({ ...s, staffCount: e.target.value }))} />
+                      <input type="number" min="0" step="0.01" className="rounded-lg bg-white px-4 py-3 outline-none" placeholder="Custo total" required value={editSupplier.totalCost} onChange={(e) => setEditSupplier((s) => ({ ...s, totalCost: e.target.value }))} />
+                      <div className="rounded-lg bg-white px-4 py-3 text-sm text-[var(--wedding-text-light)]">
+                        Alimentacao da equipe: <strong className="ml-1 text-[var(--wedding-text)]">{money(staffMealCost(Number(editSupplier.staffCount || 0)))}</strong>
+                      </div>
+                      <textarea className="min-h-24 rounded-lg bg-white px-4 py-3 outline-none md:col-span-2" placeholder="Observacoes" value={editSupplier.notes} onChange={(e) => setEditSupplier((s) => ({ ...s, notes: e.target.value }))} />
+                    </div>
+                    <div className="mt-4 flex gap-3">
+                      <button className="rounded-lg bg-[var(--wedding-text)] px-5 py-3 text-sm text-white">Salvar alteracoes</button>
+                      <button type="button" onClick={cancelEditingSupplier} className="rounded-lg border border-[var(--wedding-beige)] px-5 py-3 text-sm">Cancelar</button>
+                    </div>
+                  </form>
+                )}
 
                 <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
                   <div className="rounded-lg bg-[var(--wedding-beige)] p-4"><p className="text-xs">Custo</p><strong>{money(supplier.totalCost)}</strong></div>
