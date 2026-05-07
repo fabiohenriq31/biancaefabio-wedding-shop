@@ -12,6 +12,8 @@ export type CreateGuestPayload = {
   status: 'confirmed' | 'not_confirmed';
 };
 
+export type UpdateGuestPayload = CreateGuestPayload;
+
 export function getAdminGuests(token: string, filter: GuestFilter) {
   const query = filter === 'all' ? '' : `?status=${filter}`;
   return adminRequest<Guest[]>(token, `/api/admin/guests${query}`);
@@ -36,5 +38,21 @@ export function confirmGuest(token: string, id: string) {
 export function unconfirmGuest(token: string, id: string) {
   return adminRequest<Guest>(token, `/api/admin/guests/${id}/unconfirm`, {
     method: 'PATCH',
+  });
+}
+
+export function updateGuest(token: string, id: string, payload: UpdateGuestPayload) {
+  return adminRequest<Guest>(token, `/api/admin/guests/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteGuest(token: string, id: string) {
+  return adminRequest<void>(token, `/api/admin/guests/${id}`, {
+    method: 'DELETE',
   });
 }

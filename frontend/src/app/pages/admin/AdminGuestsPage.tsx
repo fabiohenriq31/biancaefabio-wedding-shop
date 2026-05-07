@@ -1,11 +1,13 @@
-import { CheckCircle2, Plus, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   confirmGuest,
   createAdminGuest,
+  deleteGuest,
   getAdminGuests,
   unconfirmGuest,
+  updateGuest,
   type GuestFilter,
 } from '../../services/adminGuestsApi';
 import type { Guest } from '../../types';
@@ -25,7 +27,17 @@ export function AdminGuestsPage() {
   const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [newGuest, setNewGuest] = useState({
+    name: '',
+    email: '',
+    companions: '',
+    message: '',
+    guestType: 'guest' as 'guest' | 'groomsman',
+    status: 'confirmed' as 'confirmed' | 'not_confirmed',
+  });
+  const [editGuest, setEditGuest] = useState({
     name: '',
     email: '',
     companions: '',
@@ -101,6 +113,36 @@ export function AdminGuestsPage() {
       alert(err instanceof Error ? err.message : 'Erro ao adicionar convidado');
     } finally {
       setIsCreating(false);
+    }
+  }
+
+  function startEditingGuest(guest: Guest) {
+    setEditingGuestId(guest._id);
+    setEditGuest({
+      name: guest.name || '',
+      email: guest.email || '',
+      companions: guest.companions || '',
+      message: guest.message || '',
+      guestType: guest.guestType,
+      status: guest.status,
+    });
+  }
+
+  async function handleUpdateGuest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token || !editingGuestId) return;
+
+    setIsSavingEdit(true);
+
+    try {
+      await updateGuest(token, editingGuestId, editGuest);
+      setEditingGuestId(null);
+      await loadGuests();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao salvar convidado');
+    } finally {
+      setIsSavingEdit(false);
     }
   }
 
@@ -288,6 +330,7 @@ export function AdminGuestsPage() {
 
         {filteredGuests.map((guest) => {
           const isConfirmed = guest.status === 'confirmed';
+          const isEditing = editingGuestId === guest._id;
           const date = new Intl.DateTimeFormat('pt-BR', {
             dateStyle: 'short',
             timeStyle: 'short',
@@ -295,56 +338,174 @@ export function AdminGuestsPage() {
 
           return (
             <article key={guest._id} className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
-              <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-2xl text-[var(--wedding-text)]">{guest.name}</h2>
-                    <span className={`rounded-full px-3 py-1 text-xs ${
-                      isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                    }`}>
-                      {isConfirmed ? 'Confirmado' : 'Não confirmado'}
-                    </span>
-                    <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">
-                      {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-[var(--wedding-text-light)]">
-                    {guest.email || 'Sem email'} · Recebido em {date}
-                  </p>
-                  {guest.companions && (
-                    <p className="text-sm text-[var(--wedding-text)]">
-                      <strong>Acompanhantes:</strong> {guest.companions}
-                    </p>
-                  )}
-                  {guest.message && (
-                    <p className="rounded-lg bg-[var(--wedding-beige)] p-3 text-sm italic text-[var(--wedding-text)]">
-                      "{guest.message}"
-                    </p>
-                  )}
-                </div>
+              {isEditing ? (
+                <form onSubmit={handleUpdateGuest} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Nome</span>
+                      <input
+                        type="text"
+                        value={editGuest.name}
+                        onChange={(event) => setEditGuest((current) => ({ ...current, name: event.target.value }))}
+                        className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                        required
+                      />
+                    </label>
 
-                <div className="flex min-w-fit gap-2">
-                  {isConfirmed ? (
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Email</span>
+                      <input
+                        type="email"
+                        value={editGuest.email}
+                        onChange={(event) => setEditGuest((current) => ({ ...current, email: event.target.value }))}
+                        className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                      />
+                    </label>
+
+                    <label className="block md:col-span-2">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Acompanhantes</span>
+                      <input
+                        type="text"
+                        value={editGuest.companions}
+                        onChange={(event) => setEditGuest((current) => ({ ...current, companions: event.target.value }))}
+                        className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                      />
+                    </label>
+
+                    <label className="block md:col-span-2">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Observação</span>
+                      <textarea
+                        value={editGuest.message}
+                        onChange={(event) => setEditGuest((current) => ({ ...current, message: event.target.value }))}
+                        className="min-h-24 w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Status</span>
+                      <select
+                        value={editGuest.status}
+                        onChange={(event) => setEditGuest((current) => ({
+                          ...current,
+                          status: event.target.value as 'confirmed' | 'not_confirmed',
+                        }))}
+                        className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                      >
+                        <option value="confirmed">Confirmado</option>
+                        <option value="not_confirmed">Não confirmado</option>
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-[var(--wedding-text)]">Tipo</span>
+                      <select
+                        value={editGuest.guestType}
+                        onChange={(event) => setEditGuest((current) => ({
+                          ...current,
+                          guestType: event.target.value as 'guest' | 'groomsman',
+                        }))}
+                        className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                      >
+                        <option value="guest">Convidado</option>
+                        <option value="groomsman">Padrinho/Madrinha</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="submit"
+                      disabled={isSavingEdit}
+                      className="rounded-lg bg-[var(--wedding-text)] px-5 py-3 text-sm text-white disabled:opacity-60"
+                    >
+                      {isSavingEdit ? 'Salvando...' : 'Salvar alterações'}
+                    </button>
                     <button
                       type="button"
-                      onClick={() => token && runAction(() => unconfirmGuest(token, guest._id))}
-                      className="flex items-center gap-2 rounded-lg bg-[var(--wedding-beige)] px-4 py-2 text-sm text-[var(--wedding-text)]"
+                      onClick={() => setEditingGuestId(null)}
+                      className="rounded-lg border border-[var(--wedding-beige)] px-5 py-3 text-sm text-[var(--wedding-text)]"
                     >
-                      <XCircle className="h-4 w-4" />
-                      Marcar não confirmado
+                      Cancelar
                     </button>
-                  ) : (
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h2 className="text-2xl text-[var(--wedding-text)]">{guest.name}</h2>
+                      <span className={`rounded-full px-3 py-1 text-xs ${
+                        isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                      }`}>
+                        {isConfirmed ? 'Confirmado' : 'Não confirmado'}
+                      </span>
+                      <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">
+                        {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      {guest.email || 'Sem email'} · Recebido em {date}
+                    </p>
+                    {guest.companions && (
+                      <p className="text-sm text-[var(--wedding-text)]">
+                        <strong>Acompanhantes:</strong> {guest.companions}
+                      </p>
+                    )}
+                    {guest.message && (
+                      <p className="rounded-lg bg-[var(--wedding-beige)] p-3 text-sm italic text-[var(--wedding-text)]">
+                        "{guest.message}"
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex min-w-fit flex-wrap items-center gap-2">
+                    {isConfirmed ? (
+                      <button
+                        type="button"
+                        onClick={() => token && runAction(() => unconfirmGuest(token, guest._id))}
+                        className="flex items-center gap-2 rounded-lg bg-[var(--wedding-beige)] px-4 py-2 text-sm text-[var(--wedding-text)]"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Marcar não confirmado
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => token && runAction(() => confirmGuest(token, guest._id))}
+                        className="flex items-center gap-2 rounded-lg bg-[var(--wedding-text)] px-4 py-2 text-sm text-white"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Confirmar presença
+                      </button>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => token && runAction(() => confirmGuest(token, guest._id))}
-                      className="flex items-center gap-2 rounded-lg bg-[var(--wedding-text)] px-4 py-2 text-sm text-white"
+                      onClick={() => startEditingGuest(guest)}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--wedding-beige)] text-[var(--wedding-text)]"
+                      aria-label={`Editar ${guest.name}`}
+                      title="Editar convidado"
                     >
-                      <CheckCircle2 className="h-4 w-4" />
-                      Confirmar presença
+                      <Pencil className="h-4 w-4" />
                     </button>
-                  )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!token) return;
+                        if (window.confirm(`Remover ${guest.name} da lista de presença?`)) {
+                          runAction(() => deleteGuest(token, guest._id));
+                        }
+                      }}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-700"
+                      aria-label={`Excluir ${guest.name}`}
+                      title="Excluir convidado"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </article>
           );
         })}

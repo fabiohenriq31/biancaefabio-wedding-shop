@@ -3,8 +3,10 @@ import { getAdminSummary } from "../controllers/adminController";
 import {
   confirmGuest,
   createAdminGuest,
+  deleteGuest,
   getAdminGuests,
   unconfirmGuest,
+  updateGuest,
 } from "../controllers/guestController";
 import {
   getAdminGuestPhotos,
@@ -28,8 +30,10 @@ router.use(requireAuth, requireAdmin);
 router.get("/summary", getAdminSummary);
 router.get("/guests", getAdminGuests);
 router.post("/guests", createAdminGuest);
+router.patch("/guests/:id", updateGuest);
 router.patch("/guests/:id/confirm", confirmGuest);
 router.patch("/guests/:id/unconfirm", unconfirmGuest);
+router.delete("/guests/:id", deleteGuest);
 router.get("/suppliers", getAdminSuppliers);
 router.post("/suppliers", createSupplier);
 router.post("/suppliers/:id/payments", addSupplierPayment);

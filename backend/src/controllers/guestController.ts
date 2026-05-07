@@ -104,6 +104,41 @@ export async function confirmGuest(req: Request, res: Response) {
   }
 }
 
+export async function updateGuest(req: Request, res: Response) {
+  try {
+    const name = sanitizeText(req.body.name, 120);
+
+    if (!name) {
+      return res.status(400).json({ message: "Nome é obrigatório." });
+    }
+
+    const status = req.body.status === "not_confirmed" ? "not_confirmed" : "confirmed";
+
+    const guest = await Guest.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        email: sanitizeText(req.body.email, 180).toLowerCase(),
+        companions: sanitizeText(req.body.companions, 400),
+        message: sanitizeText(req.body.message, 800),
+        guestType: parseGuestType(req.body.guestType),
+        isAttending: status === "confirmed",
+        status,
+      },
+      { new: true }
+    );
+
+    if (!guest) {
+      return res.status(404).json({ message: "Convidado não encontrado." });
+    }
+
+    return res.json(guest);
+  } catch (error) {
+    console.error("Erro ao atualizar convidado:", error);
+    return res.status(500).json({ message: "Erro ao atualizar convidado." });
+  }
+}
+
 export async function unconfirmGuest(req: Request, res: Response) {
   try {
     const guest = await Guest.findByIdAndUpdate(
@@ -120,5 +155,20 @@ export async function unconfirmGuest(req: Request, res: Response) {
   } catch (error) {
     console.error("Erro ao marcar ausência:", error);
     return res.status(500).json({ message: "Erro ao marcar ausência." });
+  }
+}
+
+export async function deleteGuest(req: Request, res: Response) {
+  try {
+    const guest = await Guest.findByIdAndDelete(req.params.id);
+
+    if (!guest) {
+      return res.status(404).json({ message: "Convidado não encontrado." });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error("Erro ao remover convidado:", error);
+    return res.status(500).json({ message: "Erro ao remover convidado." });
   }
 }
