@@ -102,6 +102,9 @@ export interface AdminSummary {
   notConfirmedGuests: number;
   groomsmenGuests: number;
   regularGuests: number;
+  childGuests: number;
+  payingGuests: number;
+  confirmedPayingGuests: number;
   totalSuppliers: number;
   supplierTotalCost: number;
   supplierTotalPaid: number;
@@ -122,6 +125,7 @@ export interface Guest {
   companions?: string;
   message?: string;
   guestType: GuestType;
+  isChild: boolean;
   isAttending: boolean;
   status: GuestStatus;
   createdAt: string;

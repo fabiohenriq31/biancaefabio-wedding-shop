@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, EyeOff, HandCoins, Package, ShoppingBag, Users, XCircle } from 'lucide-react';
+import { Baby, Camera, CheckCircle2, EyeOff, HandCoins, Package, ShoppingBag, Ticket, Users, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminRequest } from '../../services/adminApi';
@@ -60,6 +60,9 @@ export function AdminDashboard() {
             <StatCard label="Convidados no RSVP" value={summary.totalGuests} icon={Users} />
             <StatCard label="Presenças confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
             <StatCard label="Não confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
+            <StatCard label="Crianças" value={summary.childGuests} icon={Baby} />
+            <StatCard label="Pagantes" value={summary.payingGuests} icon={Ticket} />
+            <StatCard label="Pagantes confirmados" value={summary.confirmedPayingGuests} icon={Ticket} />
             <StatCard label="Padrinhos/Madrinhas" value={summary.groomsmenGuests} icon={Users} />
             <StatCard label="Fornecedores" value={summary.totalSuppliers} icon={HandCoins} />
           </div>
@@ -106,6 +109,7 @@ export function AdminDashboard() {
                     <p className="text-sm text-[var(--wedding-text-light)]">
                       {guest.email || 'Sem email'} · {guest.status === 'confirmed' ? 'Confirmado' : 'Não confirmado'}
                       {' '}· {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
+                      {' '}· {guest.isChild ? 'Criança' : 'Pagante'}
                     </p>
                   </div>
                 ))}

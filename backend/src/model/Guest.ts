@@ -11,6 +11,7 @@ const guestSchema = new mongoose.Schema(
       enum: ["guest", "groomsman"],
       default: "guest",
     },
+    isChild: { type: Boolean, default: false },
     isAttending: { type: Boolean, default: true },
     status: {
       type: String,

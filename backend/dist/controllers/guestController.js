@@ -18,6 +18,9 @@ function sanitizeText(value, maxLength = 500) {
 function parseGuestType(value) {
     return value === "groomsman" ? "groomsman" : "guest";
 }
+function parseIsChild(value) {
+    return value === true || value === "true" || value === "on";
+}
 async function createRsvp(req, res) {
     try {
         const name = sanitizeText(req.body.name, 120);
@@ -30,6 +33,7 @@ async function createRsvp(req, res) {
             companions: sanitizeText(req.body.companions, 400),
             message: sanitizeText(req.body.message, 800),
             guestType: parseGuestType(req.body.guestType),
+            isChild: parseIsChild(req.body.isChild),
             isAttending: true,
             status: "confirmed",
         });
@@ -72,6 +76,7 @@ async function createAdminGuest(req, res) {
             companions: sanitizeText(req.body.companions, 400),
             message: sanitizeText(req.body.message, 800),
             guestType: parseGuestType(req.body.guestType),
+            isChild: parseIsChild(req.body.isChild),
             isAttending: status === "confirmed",
             status,
         });
@@ -108,6 +113,7 @@ async function updateGuest(req, res) {
             companions: sanitizeText(req.body.companions, 400),
             message: sanitizeText(req.body.message, 800),
             guestType: parseGuestType(req.body.guestType),
+            isChild: parseIsChild(req.body.isChild),
             isAttending: status === "confirmed",
             status,
         }, { new: true });

@@ -9,6 +9,7 @@ export type CreateGuestPayload = {
   companions?: string;
   message?: string;
   guestType: 'guest' | 'groomsman';
+  isChild: boolean;
   status: 'confirmed' | 'not_confirmed';
 };
 

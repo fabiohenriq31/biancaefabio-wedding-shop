@@ -16,7 +16,7 @@ function getSupplierTotals(suppliers) {
 }
 async function getAdminSummary(_req, res) {
     try {
-        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, notConfirmedGuests, groomsmenGuests, regularGuests, suppliers, latestPhotos, latestOrders, latestGuests,] = await Promise.all([
+        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, notConfirmedGuests, groomsmenGuests, regularGuests, childGuests, payingGuests, confirmedPayingGuests, suppliers, latestPhotos, latestOrders, latestGuests,] = await Promise.all([
             Product_1.Product.countDocuments({ isActive: true }),
             Order_1.Order.countDocuments(),
             GuestPhoto_1.GuestPhoto.countDocuments(),
@@ -26,6 +26,9 @@ async function getAdminSummary(_req, res) {
             Guest_1.Guest.countDocuments({ status: "not_confirmed" }),
             Guest_1.Guest.countDocuments({ guestType: "groomsman" }),
             Guest_1.Guest.countDocuments({ guestType: "guest" }),
+            Guest_1.Guest.countDocuments({ isChild: true }),
+            Guest_1.Guest.countDocuments({ isChild: false }),
+            Guest_1.Guest.countDocuments({ isChild: false, status: "confirmed" }),
             Supplier_1.Supplier.find().sort({ createdAt: -1 }),
             GuestPhoto_1.GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
             Order_1.Order.find().sort({ createdAt: -1 }).limit(6),
@@ -42,6 +45,9 @@ async function getAdminSummary(_req, res) {
             notConfirmedGuests,
             groomsmenGuests,
             regularGuests,
+            childGuests,
+            payingGuests,
+            confirmedPayingGuests,
             totalSuppliers: suppliers.length,
             supplierTotalCost: supplierTotals.totalCost,
             supplierTotalPaid: supplierTotals.totalPaid,

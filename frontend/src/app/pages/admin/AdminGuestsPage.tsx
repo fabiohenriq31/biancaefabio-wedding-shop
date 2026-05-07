@@ -35,6 +35,7 @@ export function AdminGuestsPage() {
     companions: '',
     message: '',
     guestType: 'guest' as 'guest' | 'groomsman',
+    isChild: false,
     status: 'confirmed' as 'confirmed' | 'not_confirmed',
   });
   const [editGuest, setEditGuest] = useState({
@@ -43,6 +44,7 @@ export function AdminGuestsPage() {
     companions: '',
     message: '',
     guestType: 'guest' as 'guest' | 'groomsman',
+    isChild: false,
     status: 'confirmed' as 'confirmed' | 'not_confirmed',
   });
 
@@ -78,6 +80,8 @@ export function AdminGuestsPage() {
     total: guests.length,
     confirmed: guests.filter((guest) => guest.status === 'confirmed').length,
     notConfirmed: guests.filter((guest) => guest.status === 'not_confirmed').length,
+    children: guests.filter((guest) => guest.isChild).length,
+    paying: guests.filter((guest) => !guest.isChild).length,
   }), [guests]);
 
   async function runAction(action: () => Promise<unknown>) {
@@ -104,6 +108,7 @@ export function AdminGuestsPage() {
         companions: '',
         message: '',
         guestType: 'guest',
+        isChild: false,
         status: 'confirmed',
       });
       setShowCreateForm(false);
@@ -124,6 +129,7 @@ export function AdminGuestsPage() {
       companions: guest.companions || '',
       message: guest.message || '',
       guestType: guest.guestType,
+      isChild: guest.isChild,
       status: guest.status,
     });
   }
@@ -269,6 +275,16 @@ export function AdminGuestsPage() {
                 <option value="groomsman">Padrinho/Madrinha</option>
               </select>
             </label>
+
+            <label className="flex items-center gap-3 rounded-lg bg-[var(--wedding-beige)] px-4 py-3 md:col-span-2">
+              <input
+                type="checkbox"
+                checked={newGuest.isChild}
+                onChange={(event) => setNewGuest((guest) => ({ ...guest, isChild: event.target.checked }))}
+                className="h-4 w-4"
+              />
+              <span className="text-sm text-[var(--wedding-text)]">É criança (até 12 anos, não pagante)</span>
+            </label>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -290,7 +306,7 @@ export function AdminGuestsPage() {
         </form>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
           <p className="text-sm text-[var(--wedding-text-light)]">Neste filtro</p>
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.total}</p>
@@ -302,6 +318,14 @@ export function AdminGuestsPage() {
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
           <p className="text-sm text-[var(--wedding-text-light)]">Não confirmados</p>
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.notConfirmed}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
+          <p className="text-sm text-[var(--wedding-text-light)]">Crianças</p>
+          <p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.children}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
+          <p className="text-sm text-[var(--wedding-text-light)]">Pagantes</p>
+          <p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.paying}</p>
         </div>
       </div>
 
@@ -410,6 +434,19 @@ export function AdminGuestsPage() {
                         <option value="groomsman">Padrinho/Madrinha</option>
                       </select>
                     </label>
+
+                    <label className="flex items-center gap-3 rounded-lg bg-[var(--wedding-beige)] px-4 py-3 md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={editGuest.isChild}
+                        onChange={(event) => setEditGuest((current) => ({
+                          ...current,
+                          isChild: event.target.checked,
+                        }))}
+                        className="h-4 w-4"
+                      />
+                      <span className="text-sm text-[var(--wedding-text)]">É criança (até 12 anos, não pagante)</span>
+                    </label>
                   </div>
 
                   <div className="flex flex-wrap gap-3">
@@ -438,6 +475,11 @@ export function AdminGuestsPage() {
                         isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                       }`}>
                         {isConfirmed ? 'Confirmado' : 'Não confirmado'}
+                      </span>
+                      <span className={`rounded-full px-3 py-1 text-xs ${
+                        guest.isChild ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {guest.isChild ? 'Criança' : 'Pagante'}
                       </span>
                       <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">
                         {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
