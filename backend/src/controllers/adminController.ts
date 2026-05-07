@@ -12,12 +12,15 @@ function getSupplierTotals(suppliers: any[]) {
         (sum: number, payment: any) => sum + Number(payment.amount || 0),
         0
       );
+      const staffCount = Number(supplier.staffCount || 0);
 
       totals.totalCost += Number(supplier.totalCost || 0);
       totals.totalPaid += paid;
+      totals.totalStaff += staffCount;
+      totals.staffMealCost += staffCount * 45;
       return totals;
     },
-    { totalCost: 0, totalPaid: 0 }
+    { totalCost: 0, totalPaid: 0, totalStaff: 0, staffMealCost: 0 }
   );
 }
 
@@ -74,6 +77,8 @@ export async function getAdminSummary(_req: Request, res: Response) {
       payingGuests,
       confirmedPayingGuests,
       totalSuppliers: suppliers.length,
+      supplierTotalStaff: supplierTotals.totalStaff,
+      supplierStaffMealCost: supplierTotals.staffMealCost,
       supplierTotalCost: supplierTotals.totalCost,
       supplierTotalPaid: supplierTotals.totalPaid,
       supplierTotalPending: Math.max(supplierTotals.totalCost - supplierTotals.totalPaid, 0),

@@ -6,6 +6,7 @@ export type CreateSupplierPayload = {
   category?: string;
   contact?: string;
   notes?: string;
+  staffCount?: number;
   totalCost: number;
   initialPayment?: number;
   initialPaidAt?: string;

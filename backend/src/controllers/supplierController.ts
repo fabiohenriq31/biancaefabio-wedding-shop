@@ -14,6 +14,11 @@ function parseAmount(value: unknown) {
   return Number.isFinite(amount) && amount >= 0 ? amount : 0;
 }
 
+function parseCount(value: unknown) {
+  const count = Number(value || 0);
+  return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0;
+}
+
 export async function getAdminSuppliers(_req: Request, res: Response) {
   try {
     const suppliers = await Supplier.find().sort({ createdAt: -1 });
@@ -29,6 +34,7 @@ export async function createSupplier(req: Request, res: Response) {
     const name = sanitizeText(req.body.name, 140);
     const totalCost = parseAmount(req.body.totalCost);
     const initialPayment = parseAmount(req.body.initialPayment);
+    const staffCount = parseCount(req.body.staffCount);
 
     if (!name) {
       return res.status(400).json({ message: "Nome do fornecedor é obrigatório." });
@@ -40,6 +46,7 @@ export async function createSupplier(req: Request, res: Response) {
       category: sanitizeText(req.body.category, 100),
       contact: sanitizeText(req.body.contact, 180),
       notes: sanitizeText(req.body.notes, 800),
+      staffCount,
       payments: initialPayment > 0
         ? [{
             amount: initialPayment,

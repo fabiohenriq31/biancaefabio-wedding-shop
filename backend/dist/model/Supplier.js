@@ -15,6 +15,7 @@ const supplierSchema = new mongoose_1.default.Schema({
     category: { type: String, default: "" },
     contact: { type: String, default: "" },
     notes: { type: String, default: "" },
+    staffCount: { type: Number, default: 0, min: 0 },
     totalCost: { type: Number, required: true, min: 0 },
     payments: { type: [supplierPaymentSchema], default: [] },
 }, {

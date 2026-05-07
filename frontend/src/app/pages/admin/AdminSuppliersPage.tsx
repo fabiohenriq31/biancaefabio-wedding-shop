@@ -20,6 +20,10 @@ function paidTotal(supplier: Supplier) {
   return (supplier.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 }
 
+function staffMealCost(staffCount: number) {
+  return Number(staffCount || 0) * 45;
+}
+
 export function AdminSuppliersPage() {
   const { token } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -31,6 +35,7 @@ export function AdminSuppliersPage() {
     category: '',
     contact: '',
     notes: '',
+    staffCount: '',
     totalCost: '',
     initialPayment: '',
   });
@@ -55,9 +60,10 @@ export function AdminSuppliersPage() {
         const paid = paidTotal(supplier);
         acc.cost += Number(supplier.totalCost || 0);
         acc.paid += paid;
+        acc.staff += Number(supplier.staffCount || 0);
         return acc;
       },
-      { cost: 0, paid: 0 }
+      { cost: 0, paid: 0, staff: 0 }
     );
   }, [suppliers]);
 
@@ -68,6 +74,7 @@ export function AdminSuppliersPage() {
     try {
       await createSupplier(token, {
         ...newSupplier,
+        staffCount: Number(newSupplier.staffCount || 0),
         totalCost: Number(newSupplier.totalCost || 0),
         initialPayment: Number(newSupplier.initialPayment || 0),
       });
@@ -76,6 +83,7 @@ export function AdminSuppliersPage() {
         category: '',
         contact: '',
         notes: '',
+        staffCount: '',
         totalCost: '',
         initialPayment: '',
       });
@@ -132,7 +140,7 @@ export function AdminSuppliersPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
           <p className="text-sm text-[var(--wedding-text-light)]">Custo total</p>
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{money(totals.cost)}</p>
@@ -145,6 +153,11 @@ export function AdminSuppliersPage() {
           <p className="text-sm text-[var(--wedding-text-light)]">Pendente</p>
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{money(Math.max(totals.cost - totals.paid, 0))}</p>
         </div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
+          <p className="text-sm text-[var(--wedding-text-light)]">Funcionários</p>
+          <p className="mt-2 text-2xl text-[var(--wedding-text)]">{totals.staff}</p>
+          <p className="mt-2 text-sm text-[var(--wedding-text-light)]">Alimentação: {money(staffMealCost(totals.staff))}</p>
+        </div>
       </div>
 
       {showCreateForm && (
@@ -154,6 +167,7 @@ export function AdminSuppliersPage() {
             <input className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Nome" required value={newSupplier.name} onChange={(e) => setNewSupplier((s) => ({ ...s, name: e.target.value }))} />
             <input className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Categoria" value={newSupplier.category} onChange={(e) => setNewSupplier((s) => ({ ...s, category: e.target.value }))} />
             <input className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Contato" value={newSupplier.contact} onChange={(e) => setNewSupplier((s) => ({ ...s, contact: e.target.value }))} />
+            <input type="number" min="0" step="1" className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Número de funcionários" value={newSupplier.staffCount} onChange={(e) => setNewSupplier((s) => ({ ...s, staffCount: e.target.value }))} />
             <input type="number" min="0" step="0.01" className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Custo total" required value={newSupplier.totalCost} onChange={(e) => setNewSupplier((s) => ({ ...s, totalCost: e.target.value }))} />
             <input type="number" min="0" step="0.01" className="rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none" placeholder="Valor ja pago" value={newSupplier.initialPayment} onChange={(e) => setNewSupplier((s) => ({ ...s, initialPayment: e.target.value }))} />
             <textarea className="min-h-24 rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none md:col-span-2" placeholder="Observacoes" value={newSupplier.notes} onChange={(e) => setNewSupplier((s) => ({ ...s, notes: e.target.value }))} />
@@ -172,6 +186,7 @@ export function AdminSuppliersPage() {
           {suppliers.map((supplier) => {
             const paid = paidTotal(supplier);
             const pending = Math.max(Number(supplier.totalCost || 0) - paid, 0);
+            const staffCount = Number(supplier.staffCount || 0);
             const payment = paymentBySupplier[supplier._id] || { amount: '', note: '' };
 
             return (
@@ -181,6 +196,9 @@ export function AdminSuppliersPage() {
                     <div className="flex flex-wrap items-center gap-3">
                       <h2 className="text-2xl text-[var(--wedding-text)]">{supplier.name}</h2>
                       {supplier.category && <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs">{supplier.category}</span>}
+                      <span className="rounded-full bg-sky-50 px-3 py-1 text-xs text-sky-700">
+                        {staffCount} funcionário{staffCount === 1 ? '' : 's'}
+                      </span>
                     </div>
                     {supplier.contact && <p className="mt-1 text-sm text-[var(--wedding-text-light)]">{supplier.contact}</p>}
                     {supplier.notes && <p className="mt-3 text-sm text-[var(--wedding-text)]">{supplier.notes}</p>}
@@ -190,10 +208,11 @@ export function AdminSuppliersPage() {
                   </button>
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
                   <div className="rounded-lg bg-[var(--wedding-beige)] p-4"><p className="text-xs">Custo</p><strong>{money(supplier.totalCost)}</strong></div>
                   <div className="rounded-lg bg-[var(--wedding-beige)] p-4"><p className="text-xs">Pago</p><strong>{money(paid)}</strong></div>
                   <div className="rounded-lg bg-[var(--wedding-beige)] p-4"><p className="text-xs">Pendente</p><strong>{money(pending)}</strong></div>
+                  <div className="rounded-lg bg-[var(--wedding-beige)] p-4"><p className="text-xs">Alimentação equipe</p><strong>{money(staffMealCost(staffCount))}</strong></div>
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-[160px_1fr_auto]">

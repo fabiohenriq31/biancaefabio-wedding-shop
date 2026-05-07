@@ -9,10 +9,13 @@ const Supplier_1 = require("../model/Supplier");
 function getSupplierTotals(suppliers) {
     return suppliers.reduce((totals, supplier) => {
         const paid = (supplier.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        const staffCount = Number(supplier.staffCount || 0);
         totals.totalCost += Number(supplier.totalCost || 0);
         totals.totalPaid += paid;
+        totals.totalStaff += staffCount;
+        totals.staffMealCost += staffCount * 45;
         return totals;
-    }, { totalCost: 0, totalPaid: 0 });
+    }, { totalCost: 0, totalPaid: 0, totalStaff: 0, staffMealCost: 0 });
 }
 async function getAdminSummary(_req, res) {
     try {
@@ -49,6 +52,8 @@ async function getAdminSummary(_req, res) {
             payingGuests,
             confirmedPayingGuests,
             totalSuppliers: suppliers.length,
+            supplierTotalStaff: supplierTotals.totalStaff,
+            supplierStaffMealCost: supplierTotals.staffMealCost,
             supplierTotalCost: supplierTotals.totalCost,
             supplierTotalPaid: supplierTotals.totalPaid,
             supplierTotalPending: Math.max(supplierTotals.totalCost - supplierTotals.totalPaid, 0),

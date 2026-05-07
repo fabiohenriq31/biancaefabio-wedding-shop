@@ -106,6 +106,8 @@ export interface AdminSummary {
   payingGuests: number;
   confirmedPayingGuests: number;
   totalSuppliers: number;
+  supplierTotalStaff: number;
+  supplierStaffMealCost: number;
   supplierTotalCost: number;
   supplierTotalPaid: number;
   supplierTotalPending: number;
@@ -145,6 +147,7 @@ export interface Supplier {
   category?: string;
   contact?: string;
   notes?: string;
+  staffCount: number;
   totalCost: number;
   payments: SupplierPayment[];
   createdAt: string;
