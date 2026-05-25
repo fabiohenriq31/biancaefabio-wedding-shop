@@ -51,6 +51,12 @@ export function AdminDashboard() {
     return <p className="text-red-700">{error}</p>;
   }
 
+  const latestFinancialEntries = summary?.latestFinancialEntries ?? [];
+  const latestPhotos = summary?.latestPhotos ?? [];
+  const latestGuests = summary?.latestGuests ?? [];
+  const latestSuppliers = summary?.latestSuppliers ?? [];
+  const latestOrders = summary?.latestOrders ?? [];
+
   return (
     <div className="space-y-8">
       <div>
@@ -85,14 +91,14 @@ export function AdminDashboard() {
               <PiggyBank className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
               <p className="text-sm text-[var(--wedding-text-light)]">Dinheiro guardado</p>
               <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
-                {money(summary.financialReserveTotal)}
+                {money(summary.financialReserveTotal ?? 0)}
               </p>
             </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <Wallet className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
               <p className="text-sm text-[var(--wedding-text-light)]">Ainda falta juntar</p>
               <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
-                {money(summary.remainingToSave)}
+                {money(summary.remainingToSave ?? 0)}
               </p>
             </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
@@ -119,7 +125,7 @@ export function AdminDashboard() {
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos valores guardados</h2>
               <div className="space-y-4">
-                {summary.latestFinancialEntries.map((entry) => (
+                {latestFinancialEntries.map((entry) => (
                   <div key={entry._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{money(entry.amount)}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
@@ -128,7 +134,7 @@ export function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              {summary.latestFinancialEntries.length === 0 && (
+              {latestFinancialEntries.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhum valor guardado registrado ainda.</p>
               )}
             </section>
@@ -136,7 +142,7 @@ export function AdminDashboard() {
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimas fotos recebidas</h2>
               <div className="grid grid-cols-3 gap-3">
-                {summary.latestPhotos.map((photo) => (
+                {latestPhotos.map((photo) => (
                   <img
                     key={photo._id}
                     src={photo.thumbnailUrl || photo.imageUrl}
@@ -145,7 +151,7 @@ export function AdminDashboard() {
                   />
                 ))}
               </div>
-              {summary.latestPhotos.length === 0 && (
+              {latestPhotos.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhuma foto enviada ainda.</p>
               )}
             </section>
@@ -153,7 +159,7 @@ export function AdminDashboard() {
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos convidados</h2>
               <div className="space-y-4">
-                {summary.latestGuests.map((guest) => (
+                {latestGuests.map((guest) => (
                   <div key={guest._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{guest.name}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
@@ -164,7 +170,7 @@ export function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              {summary.latestGuests.length === 0 && (
+              {latestGuests.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhuma confirmacao recebida ainda.</p>
               )}
             </section>
@@ -172,7 +178,7 @@ export function AdminDashboard() {
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos fornecedores</h2>
               <div className="space-y-4">
-                {summary.latestSuppliers.map((supplier) => (
+                {latestSuppliers.map((supplier) => (
                   <div key={supplier._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{supplier.name}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
@@ -181,7 +187,7 @@ export function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              {summary.latestSuppliers.length === 0 && (
+              {latestSuppliers.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhum fornecedor cadastrado ainda.</p>
               )}
             </section>
@@ -189,7 +195,7 @@ export function AdminDashboard() {
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm xl:col-span-2">
               <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos pedidos</h2>
               <div className="space-y-4">
-                {summary.latestOrders.map((order) => (
+                {latestOrders.map((order) => (
                   <div key={order.id || (order as any)._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{order.customerName}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
@@ -198,7 +204,7 @@ export function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              {summary.latestOrders.length === 0 && (
+              {latestOrders.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhum pedido registrado ainda.</p>
               )}
             </section>

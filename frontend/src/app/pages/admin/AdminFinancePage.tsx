@@ -28,6 +28,7 @@ export function AdminFinancePage() {
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [newEntry, setNewEntry] = useState({
     amount: '',
     note: '',
@@ -46,6 +47,9 @@ export function AdminFinancePage() {
       ]);
       setEntries(financeEntries);
       setSummary(dashboardSummary);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar financeiro');
     } finally {
       setLoading(false);
     }
@@ -120,6 +124,12 @@ export function AdminFinancePage() {
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{entries.length}</p>
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleCreateEntry} className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
         <div className="mb-5">
