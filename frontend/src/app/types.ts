@@ -105,12 +105,15 @@ export interface AdminSummary {
   childGuests: number;
   payingGuests: number;
   confirmedPayingGuests: number;
+  financialReserveTotal: number;
+  remainingToSave: number;
   totalSuppliers: number;
   supplierTotalStaff: number;
   supplierStaffMealCost: number;
   supplierTotalCost: number;
   supplierTotalPaid: number;
   supplierTotalPending: number;
+  latestFinancialEntries: FinancialEntry[];
   latestSuppliers: Supplier[];
   latestPhotos: GuestPhoto[];
   latestOrders: Order[];
@@ -150,6 +153,15 @@ export interface Supplier {
   staffCount: number;
   totalCost: number;
   payments: SupplierPayment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinancialEntry {
+  _id: string;
+  amount: number;
+  note?: string;
+  savedAt: string;
   createdAt: string;
   updatedAt: string;
 }

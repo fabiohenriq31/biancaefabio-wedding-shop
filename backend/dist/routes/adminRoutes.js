@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController_1 = require("../controllers/adminController");
+const adminFinanceController_1 = require("../controllers/adminFinanceController");
 const guestController_1 = require("../controllers/guestController");
 const guestPhotosController_1 = require("../controllers/guestPhotosController");
 const supplierController_1 = require("../controllers/supplierController");
@@ -21,6 +22,9 @@ router.post("/suppliers", supplierController_1.createSupplier);
 router.patch("/suppliers/:id", supplierController_1.updateSupplier);
 router.post("/suppliers/:id/payments", supplierController_1.addSupplierPayment);
 router.delete("/suppliers/:id", supplierController_1.removeSupplier);
+router.get("/finance", adminFinanceController_1.getAdminFinanceEntries);
+router.post("/finance", adminFinanceController_1.createAdminFinanceEntry);
+router.delete("/finance/:id", adminFinanceController_1.deleteAdminFinanceEntry);
 router.get("/guest-photos", guestPhotosController_1.getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", guestPhotosController_1.hideGuestPhoto);
 router.patch("/guest-photos/:id/show", guestPhotosController_1.showGuestPhoto);

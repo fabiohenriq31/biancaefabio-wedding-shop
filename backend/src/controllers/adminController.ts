@@ -4,6 +4,7 @@ import { Guest } from "../model/Guest";
 import { Order } from "../model/Order";
 import { Product } from "../model/Product";
 import { Supplier } from "../model/Supplier";
+import { FinancialEntry } from "../model/FinancialEntry";
 
 function getSupplierTotals(suppliers: any[]) {
   return suppliers.reduce(
@@ -33,13 +34,12 @@ export async function getAdminSummary(_req: Request, res: Response) {
       hiddenPhotos,
       totalGuests,
       confirmedGuests,
-      notConfirmedGuests,
       groomsmenGuests,
       regularGuests,
       childGuests,
       payingGuests,
-      confirmedPayingGuests,
       suppliers,
+      financeEntries,
       latestPhotos,
       latestOrders,
       latestGuests,
@@ -49,19 +49,34 @@ export async function getAdminSummary(_req: Request, res: Response) {
       GuestPhoto.countDocuments(),
       GuestPhoto.countDocuments({ status: "hidden" }),
       Guest.countDocuments(),
-      Guest.countDocuments({ status: "confirmed" }),
-      Guest.countDocuments({ status: "not_confirmed" }),
+      Guest.countDocuments({
+        $or: [{ status: "confirmed" }, { isAttending: true }],
+      }),
       Guest.countDocuments({ guestType: "groomsman" }),
       Guest.countDocuments({ guestType: "guest" }),
       Guest.countDocuments({ isChild: true }),
       Guest.countDocuments({ isChild: false }),
-      Guest.countDocuments({ isChild: false, status: "confirmed" }),
       Supplier.find().sort({ createdAt: -1 }),
+      FinancialEntry.find().sort({ savedAt: -1, createdAt: -1 }),
       GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
       Order.find().sort({ createdAt: -1 }).limit(6),
       Guest.find().sort({ createdAt: -1 }).limit(6),
     ]);
     const supplierTotals = getSupplierTotals(suppliers);
+    const totalReserved = financeEntries.reduce(
+      (sum, entry) => sum + Number(entry.amount || 0),
+      0
+    );
+    const confirmedPayingGuests = await Guest.countDocuments({
+      isChild: false,
+      $or: [{ status: "confirmed" }, { isAttending: true }],
+    });
+    const notConfirmedGuests = Math.max(totalGuests - confirmedGuests, 0);
+    const supplierTotalPending = Math.max(
+      supplierTotals.totalCost - supplierTotals.totalPaid,
+      0
+    );
+    const remainingToSave = Math.max(supplierTotalPending - totalReserved, 0);
 
     return res.json({
       activeProducts,
@@ -76,12 +91,15 @@ export async function getAdminSummary(_req: Request, res: Response) {
       childGuests,
       payingGuests,
       confirmedPayingGuests,
+      financialReserveTotal: totalReserved,
+      remainingToSave,
       totalSuppliers: suppliers.length,
       supplierTotalStaff: supplierTotals.totalStaff,
       supplierStaffMealCost: supplierTotals.staffMealCost,
       supplierTotalCost: supplierTotals.totalCost,
       supplierTotalPaid: supplierTotals.totalPaid,
-      supplierTotalPending: Math.max(supplierTotals.totalCost - supplierTotals.totalPaid, 0),
+      supplierTotalPending,
+      latestFinancialEntries: financeEntries.slice(0, 6),
       latestSuppliers: suppliers.slice(0, 6),
       latestPhotos,
       latestOrders,

@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { getAdminSummary } from "../controllers/adminController";
 import {
+  createAdminFinanceEntry,
+  deleteAdminFinanceEntry,
+  getAdminFinanceEntries,
+} from "../controllers/adminFinanceController";
+import {
   confirmGuest,
   createAdminGuest,
   deleteGuest,
@@ -40,6 +45,9 @@ router.post("/suppliers", createSupplier);
 router.patch("/suppliers/:id", updateSupplier);
 router.post("/suppliers/:id/payments", addSupplierPayment);
 router.delete("/suppliers/:id", removeSupplier);
+router.get("/finance", getAdminFinanceEntries);
+router.post("/finance", createAdminFinanceEntry);
+router.delete("/finance/:id", deleteAdminFinanceEntry);
 router.get("/guest-photos", getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", hideGuestPhoto);
 router.patch("/guest-photos/:id/show", showGuestPhoto);

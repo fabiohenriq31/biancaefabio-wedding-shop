@@ -1,4 +1,17 @@
-import { Baby, Camera, CheckCircle2, EyeOff, HandCoins, Package, ShoppingBag, Ticket, Users, XCircle } from 'lucide-react';
+import {
+  Baby,
+  Camera,
+  CheckCircle2,
+  EyeOff,
+  HandCoins,
+  Package,
+  PiggyBank,
+  ShoppingBag,
+  Ticket,
+  Users,
+  Wallet,
+  XCircle,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminRequest } from '../../services/adminApi';
@@ -44,7 +57,7 @@ export function AdminDashboard() {
         <p className="text-sm uppercase tracking-[0.22em] text-[var(--wedding-gold)]">Painel central</p>
         <h1 className="mt-2 text-4xl text-[var(--wedding-text)]">Dashboard administrativo</h1>
         <p className="mt-2 text-[var(--wedding-text-light)]">
-          Visão geral dos presentes, pedidos e fotos enviadas pelos convidados.
+          Visao geral dos presentes, pedidos, fotos e planejamento financeiro.
         </p>
       </div>
 
@@ -58,33 +71,70 @@ export function AdminDashboard() {
             <StatCard label="Fotos enviadas" value={summary.totalPhotos} icon={Camera} />
             <StatCard label="Fotos ocultadas" value={summary.hiddenPhotos} icon={EyeOff} />
             <StatCard label="Convidados no RSVP" value={summary.totalGuests} icon={Users} />
-            <StatCard label="Presenças confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
-            <StatCard label="Não confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
-            <StatCard label="Crianças" value={summary.childGuests} icon={Baby} />
+            <StatCard label="Presencas confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
+            <StatCard label="Nao confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
+            <StatCard label="Criancas" value={summary.childGuests} icon={Baby} />
             <StatCard label="Pagantes" value={summary.payingGuests} icon={Ticket} />
             <StatCard label="Pagantes confirmados" value={summary.confirmedPayingGuests} icon={Ticket} />
             <StatCard label="Padrinhos/Madrinhas" value={summary.groomsmenGuests} icon={Users} />
             <StatCard label="Fornecedores" value={summary.totalSuppliers} icon={HandCoins} />
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <PiggyBank className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
+              <p className="text-sm text-[var(--wedding-text-light)]">Dinheiro guardado</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.financialReserveTotal)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <Wallet className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
+              <p className="text-sm text-[var(--wedding-text-light)]">Ainda falta juntar</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.remainingToSave)}
+              </p>
+            </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <p className="text-sm text-[var(--wedding-text-light)]">Custos de fornecedores</p>
-              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalCost)}</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.supplierTotalCost)}
+              </p>
             </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <p className="text-sm text-[var(--wedding-text-light)]">Valores pagos</p>
-              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalPaid)}</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.supplierTotalPaid)}
+              </p>
             </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <p className="text-sm text-[var(--wedding-text-light)]">Saldo pendente</p>
-              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">{money(summary.supplierTotalPending)}</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.supplierTotalPending)}
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimas fotos recebidas</h2>
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos valores guardados</h2>
+              <div className="space-y-4">
+                {summary.latestFinancialEntries.map((entry) => (
+                  <div key={entry._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
+                    <p className="font-medium text-[var(--wedding-text)]">{money(entry.amount)}</p>
+                    <p className="text-sm text-[var(--wedding-text-light)]">
+                      {entry.note || 'Sem observacao'} · {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(entry.savedAt))}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {summary.latestFinancialEntries.length === 0 && (
+                <p className="text-[var(--wedding-text-light)]">Nenhum valor guardado registrado ainda.</p>
+              )}
+            </section>
+
+            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimas fotos recebidas</h2>
               <div className="grid grid-cols-3 gap-3">
                 {summary.latestPhotos.map((photo) => (
                   <img
@@ -101,26 +151,26 @@ export function AdminDashboard() {
             </section>
 
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimos convidados</h2>
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos convidados</h2>
               <div className="space-y-4">
                 {summary.latestGuests.map((guest) => (
                   <div key={guest._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{guest.name}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
-                      {guest.email || 'Sem email'} · {guest.status === 'confirmed' ? 'Confirmado' : 'Não confirmado'}
+                      {guest.email || 'Sem email'} · {guest.isAttending || guest.status === 'confirmed' ? 'Confirmado' : 'Nao confirmado'}
                       {' '}· {guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}
-                      {' '}· {guest.isChild ? 'Criança' : 'Pagante'}
+                      {' '}· {guest.isChild ? 'Crianca' : 'Pagante'}
                     </p>
                   </div>
                 ))}
               </div>
               {summary.latestGuests.length === 0 && (
-                <p className="text-[var(--wedding-text-light)]">Nenhuma confirmação recebida ainda.</p>
+                <p className="text-[var(--wedding-text-light)]">Nenhuma confirmacao recebida ainda.</p>
               )}
             </section>
 
             <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimos fornecedores</h2>
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos fornecedores</h2>
               <div className="space-y-4">
                 {summary.latestSuppliers.map((supplier) => (
                   <div key={supplier._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
@@ -136,14 +186,14 @@ export function AdminDashboard() {
               )}
             </section>
 
-            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Últimos pedidos</h2>
+            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm xl:col-span-2">
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos pedidos</h2>
               <div className="space-y-4">
                 {summary.latestOrders.map((order) => (
                   <div key={order.id || (order as any)._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
                     <p className="font-medium text-[var(--wedding-text)]">{order.customerName}</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
-                      {order.customerEmail} · R$ {Number(order.totalAmount || 0).toFixed(2)}
+                      {order.customerEmail} · {money(Number(order.totalAmount || 0))}
                     </p>
                   </div>
                 ))}
