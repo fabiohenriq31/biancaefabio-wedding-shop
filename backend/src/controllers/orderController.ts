@@ -66,6 +66,29 @@ export async function getOrdersByUser(req: Request, res: Response) {
   }
 }
 
+export async function getOrderById(req: Request, res: Response) {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Pedido não encontrado." });
+    }
+
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Não autorizado." });
+    }
+
+    if (req.user.role !== "admin" && req.user.sub !== order.userId) {
+      return res.status(403).json({ message: "Acesso negado." });
+    }
+
+    return res.json(order);
+  } catch (error) {
+    console.error("Erro ao buscar pedido:", error);
+    return res.status(500).json({ message: "Erro ao buscar pedido." });
+  }
+}
+
 export async function getAllOrders(_req: Request, res: Response) {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });

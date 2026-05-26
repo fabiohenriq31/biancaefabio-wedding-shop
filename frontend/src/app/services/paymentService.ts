@@ -12,6 +12,10 @@ function getAuthToken() {
   }
 }
 
+async function readJson(response: Response) {
+  return response.json().catch(() => null);
+}
+
 export async function createCheckoutPro(orderId: string) {
   const token = getAuthToken();
 
@@ -24,10 +28,40 @@ export async function createCheckoutPro(orderId: string) {
     body: JSON.stringify({ orderId }),
   });
 
-  const data = await response.json().catch(() => null);
+  const data = await readJson(response);
 
   if (!response.ok) {
     throw new Error(data?.message || "Erro ao iniciar pagamento.");
+  }
+
+  return data;
+}
+
+export async function syncMercadoPagoOrderStatus(params: {
+  paymentId?: string | null;
+  externalReference?: string | null;
+}) {
+  const token = getAuthToken();
+  const query = new URLSearchParams();
+
+  if (params.paymentId) {
+    query.set("payment_id", params.paymentId);
+  }
+
+  if (params.externalReference) {
+    query.set("external_reference", params.externalReference);
+  }
+
+  const response = await fetch(`${API_URL}/payments/mercadopago/status?${query.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Erro ao sincronizar pagamento.");
   }
 
   return data;

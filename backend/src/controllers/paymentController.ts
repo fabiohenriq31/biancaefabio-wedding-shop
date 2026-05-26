@@ -1,15 +1,15 @@
 import type { Request, Response } from "express";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { Order } from "../model/Order";
+import { syncMercadoPagoPaymentById } from "../services/mercadoPagoOrderSync";
 import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 const frontendUrl = process.env.FRONTEND_URL;
+const mpAccessToken = process.env.MP_ACCESS_TOKEN;
 
 console.log(`Frontend URL configurada: ${frontendUrl}`);
-
-const mpAccessToken = process.env.MP_ACCESS_TOKEN;
 
 if (!mpAccessToken) {
   throw new Error("MP_ACCESS_TOKEN não configurado no .env");
@@ -31,11 +31,13 @@ export async function createCheckoutPreference(req: Request, res: Response) {
 
     if (!order) {
       return res.status(404).json({ message: "Pedido não encontrado." });
-    }if (order.paymentStatus === "paid") {
+    }
+
+    if (order.paymentStatus === "paid") {
       return res.status(400).json({
         message: "Este pedido já foi pago.",
       });
-}
+    }
 
     if (!order.items || !Array.isArray(order.items) || order.items.length === 0) {
       return res.status(400).json({ message: "Pedido sem itens." });
@@ -81,13 +83,6 @@ export async function createCheckoutPreference(req: Request, res: Response) {
       body.notification_url = process.env.MP_WEBHOOK_URL;
     }
 
-    console.log("Criando preferência Mercado Pago...");
-    console.log("Token prefix:", process.env.MP_ACCESS_TOKEN?.slice(0, 10));
-    console.log("Order ID:", orderId);
-    console.log("Items enviados:", items);
-    console.log("Back URLs:", body.back_urls);
-    console.log("Webhook configurado?", Boolean(process.env.MP_WEBHOOK_URL));
-
     const result = await preference.create({ body });
 
     return res.json({
@@ -110,5 +105,49 @@ export async function createCheckoutPreference(req: Request, res: Response) {
       status: error?.status || 500,
       cause: error?.cause || null,
     });
+  }
+}
+
+export async function syncCheckoutPaymentStatus(req: Request, res: Response) {
+  try {
+    const paymentId = String(req.query.payment_id || "").trim();
+    const externalReference = String(req.query.external_reference || "").trim();
+
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Não autorizado." });
+    }
+
+    if (paymentId) {
+      const { order } = await syncMercadoPagoPaymentById(paymentId);
+
+      if (!order) {
+        return res.status(404).json({ message: "Pedido não encontrado." });
+      }
+
+      if (req.user.role !== "admin" && order.userId !== req.user.sub) {
+        return res.status(403).json({ message: "Acesso negado." });
+      }
+
+      return res.json({ order });
+    }
+
+    if (!externalReference) {
+      return res.status(400).json({ message: "payment_id ou external_reference é obrigatório." });
+    }
+
+    const order = await Order.findById(externalReference);
+
+    if (!order) {
+      return res.status(404).json({ message: "Pedido não encontrado." });
+    }
+
+    if (req.user.role !== "admin" && order.userId !== req.user.sub) {
+      return res.status(403).json({ message: "Acesso negado." });
+    }
+
+    return res.json({ order });
+  } catch (error) {
+    console.error("Erro ao sincronizar pagamento Mercado Pago:", error);
+    return res.status(500).json({ message: "Erro ao sincronizar pagamento." });
   }
 }

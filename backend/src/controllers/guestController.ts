@@ -28,6 +28,7 @@ export async function createRsvp(req: Request, res: Response) {
     const guest = await Guest.create({
       name,
       email: sanitizeText(req.body.email, 180).toLowerCase(),
+      phone: sanitizeText(req.body.phone, 40),
       companions: sanitizeText(req.body.companions, 400),
       message: sanitizeText(req.body.message, 800),
       guestType: parseGuestType(req.body.guestType),
@@ -76,6 +77,7 @@ export async function createAdminGuest(req: Request, res: Response) {
     const guest = await Guest.create({
       name,
       email: sanitizeText(req.body.email, 180).toLowerCase(),
+      phone: sanitizeText(req.body.phone, 40),
       companions: sanitizeText(req.body.companions, 400),
       message: sanitizeText(req.body.message, 800),
       guestType: parseGuestType(req.body.guestType),
@@ -125,6 +127,7 @@ export async function updateGuest(req: Request, res: Response) {
       {
         name,
         email: sanitizeText(req.body.email, 180).toLowerCase(),
+        phone: sanitizeText(req.body.phone, 40),
         companions: sanitizeText(req.body.companions, 400),
         message: sanitizeText(req.body.message, 800),
         guestType: parseGuestType(req.body.guestType),

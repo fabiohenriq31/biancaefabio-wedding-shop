@@ -6,6 +6,7 @@ export type GuestFilter = 'all' | 'confirmed' | 'not_confirmed';
 export type CreateGuestPayload = {
   name: string;
   email?: string;
+  phone?: string;
   companions?: string;
   message?: string;
   guestType: 'guest' | 'groomsman';

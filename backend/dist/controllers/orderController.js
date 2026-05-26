@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createOrder = createOrder;
 exports.getOrdersByUser = getOrdersByUser;
+exports.getOrderById = getOrderById;
 exports.getAllOrders = getAllOrders;
 const Order_1 = require("../model/Order");
 async function createOrder(req, res) {
@@ -48,6 +49,25 @@ async function getOrdersByUser(req, res) {
     catch (error) {
         console.error("Erro ao buscar pedidos do usuário:", error);
         return res.status(500).json({ message: "Erro ao buscar pedidos." });
+    }
+}
+async function getOrderById(req, res) {
+    try {
+        const order = await Order_1.Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: "Pedido não encontrado." });
+        }
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Não autorizado." });
+        }
+        if (req.user.role !== "admin" && req.user.sub !== order.userId) {
+            return res.status(403).json({ message: "Acesso negado." });
+        }
+        return res.json(order);
+    }
+    catch (error) {
+        console.error("Erro ao buscar pedido:", error);
+        return res.status(500).json({ message: "Erro ao buscar pedido." });
     }
 }
 async function getAllOrders(_req, res) {

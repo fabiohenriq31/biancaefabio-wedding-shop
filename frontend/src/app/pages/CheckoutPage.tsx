@@ -10,6 +10,8 @@ import { createOrder } from '../services/orderService';
 import type { PaymentMethod } from '../types';
 import { createCheckoutPro } from '../services/paymentService';
 
+const LAST_ORDER_STORAGE_KEY = 'wedding_last_order_id';
+
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { cartItems, cartSubtotal } = useCart();
@@ -47,17 +49,12 @@ export function CheckoutPage() {
         })),
       };
 
-      console.log('PAYLOAD ORDER:', payload);
-
       const response = await createOrder(payload);
-      console.log('RESPONSE ORDER:', response);
-
       const orderId = response.order._id || response.order.id;
-      console.log('ORDER ID:', orderId);
+
+      sessionStorage.setItem(LAST_ORDER_STORAGE_KEY, String(orderId));
 
       const payment = await createCheckoutPro(orderId);
-      console.log('PAYMENT RESPONSE:', payment);
-
       window.location.href = payment.initPoint;
     } catch (error) {
       console.error('ERRO CHECKOUT:', error);
@@ -126,7 +123,7 @@ export function CheckoutPage() {
                 Mensagem para os noivos
               </h2>
               <p className="text-sm text-[var(--wedding-text-light)] mb-4">
-                Deixe palavras carinhosas que farão parte da história de Bianca & Fábio
+                Deixe palavras carinhosas que farao parte da historia de Bianca & Fabio
               </p>
               <textarea
                 value={giftMessage}
@@ -154,7 +151,7 @@ export function CheckoutPage() {
                   <div className="text-left flex-1">
                     <p className="text-[var(--wedding-text)]">PIX</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
-                      Pagamento instantâneo
+                      Pagamento instantaneo
                     </p>
                   </div>
                   <div
@@ -180,9 +177,9 @@ export function CheckoutPage() {
                 >
                   <CreditCard className="w-6 h-6 text-[var(--wedding-text)]" />
                   <div className="text-left flex-1">
-                    <p className="text-[var(--wedding-text)]">Cartão de crédito</p>
+                    <p className="text-[var(--wedding-text)]">Cartao de credito</p>
                     <p className="text-sm text-[var(--wedding-text-light)]">
-                      Parcelamento disponível
+                      Parcelamento disponivel
                     </p>
                   </div>
                   <div
@@ -228,7 +225,7 @@ export function CheckoutPage() {
                   </span>
                 </div>
                 <p className="text-xs text-[var(--wedding-text-light)] text-right">
-                  via {paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}
+                  via {paymentMethod === 'pix' ? 'PIX' : 'Cartao de credito'}
                 </p>
               </div>
 
@@ -244,7 +241,7 @@ export function CheckoutPage() {
 
               <div className="mt-6 p-4 bg-[var(--wedding-beige)] rounded-lg">
                 <p className="text-xs text-[var(--wedding-text-light)] text-center">
-                  Seus dados estão seguros e a transação é totalmente protegida
+                  Seus dados estao seguros e a transacao e totalmente protegida
                 </p>
               </div>
             </Card>

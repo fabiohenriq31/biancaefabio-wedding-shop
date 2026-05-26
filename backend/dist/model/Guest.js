@@ -8,6 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const guestSchema = new mongoose_1.default.Schema({
     name: { type: String, required: true },
     email: { type: String, default: "" },
+    phone: { type: String, default: "" },
     companions: { type: String, default: "" },
     message: { type: String, default: "" },
     guestType: {

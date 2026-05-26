@@ -127,6 +127,7 @@ export interface Guest {
   _id: string;
   name: string;
   email?: string;
+  phone?: string;
   companions?: string;
   message?: string;
   guestType: GuestType;

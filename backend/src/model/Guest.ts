@@ -4,6 +4,7 @@ const guestSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, default: "" },
+    phone: { type: String, default: "" },
     companions: { type: String, default: "" },
     message: { type: String, default: "" },
     guestType: {

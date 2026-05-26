@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import crypto from "crypto";
-import { MercadoPagoConfig, Payment } from "mercadopago";
-import { Order } from "../model/Order";
+import { syncMercadoPagoPaymentById } from "../services/mercadoPagoOrderSync";
 
 function isValidSignature(req: Request) {
   const secret = process.env.MP_WEBHOOK_SECRET;
@@ -77,20 +76,7 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
       return res.status(200).json({ ok: true });
     }
 
-    const mpAccessToken = process.env.MP_ACCESS_TOKEN;
-
-    if (!mpAccessToken) {
-      console.error("MP_ACCESS_TOKEN não configurado.");
-      return res.status(500).json({ message: "MP_ACCESS_TOKEN não configurado." });
-    }
-
-    const mpClient = new MercadoPagoConfig({
-      accessToken: mpAccessToken,
-    });
-
-    const payment = new Payment(mpClient);
-    const paymentData = await payment.get({ id: String(paymentId) });
-
+    const { order, paymentData } = await syncMercadoPagoPaymentById(String(paymentId));
     const externalReference = paymentData.external_reference;
     const status = paymentData.status;
 
@@ -105,40 +91,15 @@ export async function mercadoPagoWebhook(req: Request, res: Response) {
       return res.status(200).json({ ok: true });
     }
 
-    const order = await Order.findById(externalReference);
-
     if (!order) {
       console.log("Pedido não encontrado para external_reference:", externalReference);
       return res.status(200).json({ ok: true });
     }
 
-    if (order.paymentStatus === "paid" && order.status === "confirmed") {
-      console.log("Pedido já confirmado. Ignorando atualização duplicada.");
-      return res.status(200).json({ ok: true });
-    }
-
-    let paymentStatus: "awaiting_payment" | "paid" | "failed" | "refunded" = "awaiting_payment";
-    let orderStatus: "pending" | "confirmed" = "pending";
-
-    if (status === "approved") {
-      paymentStatus = "paid";
-      orderStatus = "confirmed";
-    } else if (status === "rejected" || status === "cancelled") {
-      paymentStatus = "failed";
-      orderStatus = "pending";
-    } else if (status === "in_process" || status === "pending") {
-      paymentStatus = "awaiting_payment";
-      orderStatus = "pending";
-    }
-
-    order.paymentStatus = paymentStatus;
-    order.status = orderStatus;
-    await order.save();
-
     console.log("Pedido atualizado com sucesso:", {
       orderId: order._id,
-      paymentStatus,
-      orderStatus,
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.status,
     });
 
     return res.status(200).json({ ok: true });

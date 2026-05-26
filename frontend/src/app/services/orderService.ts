@@ -28,6 +28,10 @@ function getAuthToken() {
   }
 }
 
+async function readJson(response: Response) {
+  return response.json().catch(() => null);
+}
+
 export async function createOrder(payload: CreateOrderPayload) {
   const response = await fetch(`${API_URL}/orders`, {
     method: "POST",
@@ -37,7 +41,7 @@ export async function createOrder(payload: CreateOrderPayload) {
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json().catch(() => null);
+  const data = await readJson(response);
 
   if (!response.ok) {
     throw new Error(data?.message || "Erro ao criar pedido.");
@@ -55,10 +59,28 @@ export async function getOrdersByUser(userId: string) {
     },
   });
 
-  const data = await response.json().catch(() => null);
+  const data = await readJson(response);
 
   if (!response.ok) {
     throw new Error(data?.message || "Erro ao buscar pedidos.");
+  }
+
+  return data;
+}
+
+export async function getOrderById(orderId: string) {
+  const token = getAuthToken();
+
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Erro ao buscar pedido.");
   }
 
   return data;
@@ -73,7 +95,7 @@ export async function getAllOrders() {
     },
   });
 
-  const data = await response.json().catch(() => null);
+  const data = await readJson(response);
 
   if (!response.ok) {
     throw new Error(data?.message || "Erro ao buscar pedidos.");
