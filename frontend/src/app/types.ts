@@ -1,11 +1,6 @@
-// Type definitions for the wedding shopping application
-
-export type Category = 'Lua de Mel' | 'Gastronomia' | 'Diversão' | 'Viagem' | 'Momentos a Dois' | 'Extras';
-
+export type Category = 'Lua de Mel' | 'Gastronomia' | 'Diversao' | 'Viagem' | 'Momentos a Dois' | 'Extras';
 export type PaymentMethod = 'pix' | 'credit_card' | 'payment_link' | 'mercado_pago' | 'manual_redirect';
-
 export type OrderStatus = 'pending' | 'confirmed' | 'cancelled';
-
 export type PaymentStatus = 'awaiting_payment' | 'paid' | 'failed' | 'refunded';
 
 export type Product = {
@@ -79,6 +74,9 @@ export interface Order {
 }
 
 export type GuestPhotoStatus = 'approved' | 'hidden';
+export type GuestStatus = 'confirmed' | 'not_confirmed';
+export type GuestType = 'guest' | 'groomsman';
+export type WeddingDayKey = 'friday' | 'saturday' | 'sunday';
 
 export interface GuestPhoto {
   _id: string;
@@ -90,6 +88,29 @@ export interface GuestPhoto {
   status: GuestPhotoStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Guest {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  companions?: string;
+  message?: string;
+  guestType: GuestType;
+  isChild: boolean;
+  isAttending: boolean;
+  status: GuestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GuestLookupResult {
+  _id: string;
+  name: string;
+  guestType: GuestType;
+  isChild: boolean;
+  status: GuestStatus;
 }
 
 export interface AdminSummary {
@@ -120,24 +141,6 @@ export interface AdminSummary {
   latestGuests: Guest[];
 }
 
-export type GuestStatus = 'confirmed' | 'not_confirmed';
-export type GuestType = 'guest' | 'groomsman';
-
-export interface Guest {
-  _id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  companions?: string;
-  message?: string;
-  guestType: GuestType;
-  isChild: boolean;
-  isAttending: boolean;
-  status: GuestStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface SupplierPayment {
   _id: string;
   amount: number;
@@ -163,6 +166,18 @@ export interface FinancialEntry {
   amount: number;
   note?: string;
   savedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DayScheduleItem {
+  _id: string;
+  dayKey: WeddingDayKey;
+  startTime: string;
+  endTime?: string;
+  title: string;
+  location?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }

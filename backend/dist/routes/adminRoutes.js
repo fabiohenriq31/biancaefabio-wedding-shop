@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController_1 = require("../controllers/adminController");
+const dayScheduleController_1 = require("../controllers/dayScheduleController");
 const adminFinanceController_1 = require("../controllers/adminFinanceController");
 const guestController_1 = require("../controllers/guestController");
 const guestPhotosController_1 = require("../controllers/guestPhotosController");
@@ -17,6 +18,10 @@ router.patch("/guests/:id", guestController_1.updateGuest);
 router.patch("/guests/:id/confirm", guestController_1.confirmGuest);
 router.patch("/guests/:id/unconfirm", guestController_1.unconfirmGuest);
 router.delete("/guests/:id", guestController_1.deleteGuest);
+router.get("/day-schedule", dayScheduleController_1.getAdminDaySchedule);
+router.post("/day-schedule", dayScheduleController_1.createAdminDayScheduleItem);
+router.patch("/day-schedule/:id", dayScheduleController_1.updateAdminDayScheduleItem);
+router.delete("/day-schedule/:id", dayScheduleController_1.deleteAdminDayScheduleItem);
 router.get("/suppliers", supplierController_1.getAdminSuppliers);
 router.post("/suppliers", supplierController_1.createSupplier);
 router.patch("/suppliers/:id", supplierController_1.updateSupplier);

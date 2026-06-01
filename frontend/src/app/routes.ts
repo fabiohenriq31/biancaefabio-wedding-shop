@@ -9,6 +9,7 @@ import { SuccessPage } from './pages/SuccessPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminProtectedPage } from './components/AdminProtectedPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminDaySchedulePage } from './pages/admin/AdminDaySchedulePage';
 import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'produtos', Component: AdminProductsPage },
       { path: 'pedidos', Component: AdminOrdersPage },
       { path: 'convidados', Component: AdminGuestsPage },
+      { path: 'organizacao-do-dia', Component: AdminDaySchedulePage },
       { path: 'financeiro', Component: AdminFinancePage },
       { path: 'fornecedores', Component: AdminSuppliersPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },

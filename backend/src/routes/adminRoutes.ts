@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { getAdminSummary } from "../controllers/adminController";
 import {
+  createAdminDayScheduleItem,
+  deleteAdminDayScheduleItem,
+  getAdminDaySchedule,
+  updateAdminDayScheduleItem,
+} from "../controllers/dayScheduleController";
+import {
   createAdminFinanceEntry,
   deleteAdminFinanceEntry,
   getAdminFinanceEntries,
@@ -40,6 +46,10 @@ router.patch("/guests/:id", updateGuest);
 router.patch("/guests/:id/confirm", confirmGuest);
 router.patch("/guests/:id/unconfirm", unconfirmGuest);
 router.delete("/guests/:id", deleteGuest);
+router.get("/day-schedule", getAdminDaySchedule);
+router.post("/day-schedule", createAdminDayScheduleItem);
+router.patch("/day-schedule/:id", updateAdminDayScheduleItem);
+router.delete("/day-schedule/:id", deleteAdminDayScheduleItem);
 router.get("/suppliers", getAdminSuppliers);
 router.post("/suppliers", createSupplier);
 router.patch("/suppliers/:id", updateSupplier);

@@ -17,33 +17,112 @@ function parseIsChild(value: unknown) {
   return value === true || value === "true" || value === "on";
 }
 
-export async function createRsvp(req: Request, res: Response) {
-  try {
-    const name = sanitizeText(req.body.name, 120);
+function normalizeName(value: unknown) {
+  return sanitizeText(value, 120)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
 
-    if (!name) {
-      return res.status(400).json({ message: "Nome é obrigatório." });
+async function resolvePrimaryGuest(body: any) {
+  if (body.primaryGuestId) {
+    return Guest.findById(String(body.primaryGuestId));
+  }
+
+  const normalized = normalizeName(body.name);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const guests = await Guest.find();
+  return guests.find((guest) => normalizeName(guest.name) === normalized) || null;
+}
+
+function parseCompanionIds(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+}
+
+export async function searchRsvpGuests(req: Request, res: Response) {
+  try {
+    const q = sanitizeText(req.query.q, 120);
+
+    if (q.length < 2) {
+      return res.json([]);
     }
 
-    const guest = await Guest.create({
-      name,
-      email: sanitizeText(req.body.email, 180).toLowerCase(),
-      phone: sanitizeText(req.body.phone, 40),
-      companions: sanitizeText(req.body.companions, 400),
-      message: sanitizeText(req.body.message, 800),
-      guestType: parseGuestType(req.body.guestType),
-      isChild: parseIsChild(req.body.isChild),
-      isAttending: true,
-      status: "confirmed",
-    });
+    const guests = await Guest.find({
+      name: { $regex: q, $options: "i" },
+    })
+      .sort({ name: 1 })
+      .limit(8);
+
+    return res.json(
+      guests.map((guest) => ({
+        _id: guest._id,
+        name: guest.name,
+        guestType: guest.guestType,
+        isChild: guest.isChild,
+        status: guest.status,
+      }))
+    );
+  } catch (error) {
+    console.error("Erro ao buscar convidados para RSVP:", error);
+    return res.status(500).json({ message: "Erro ao buscar convidados." });
+  }
+}
+
+export async function createRsvp(req: Request, res: Response) {
+  try {
+    const primaryGuest = await resolvePrimaryGuest(req.body);
+
+    if (!primaryGuest) {
+      return res.status(400).json({ message: "Selecione um nome valido da lista de convidados." });
+    }
+
+    const companionIds = parseCompanionIds(req.body.companionGuestIds).filter(
+      (id) => id !== String(primaryGuest._id)
+    );
+
+    const companions = companionIds.length > 0
+      ? await Guest.find({ _id: { $in: companionIds } })
+      : [];
+
+    if (companions.length !== companionIds.length) {
+      return res.status(400).json({ message: "Todos os acompanhantes precisam estar na lista de convidados." });
+    }
+
+    primaryGuest.email = sanitizeText(req.body.email, 180).toLowerCase();
+    primaryGuest.phone = sanitizeText(req.body.phone, 40);
+    primaryGuest.message = sanitizeText(req.body.message, 800);
+    primaryGuest.companions = companions.map((guest) => guest.name).join(", ");
+    primaryGuest.isAttending = true;
+    primaryGuest.status = "confirmed";
+    await primaryGuest.save();
+
+    if (companions.length > 0) {
+      await Guest.updateMany(
+        { _id: { $in: companionIds } },
+        {
+          $set: {
+            isAttending: true,
+            status: "confirmed",
+          },
+        }
+      );
+    }
 
     return res.status(201).json({
-      message: "Confirmação registrada com sucesso.",
-      guest,
+      message: "Confirmacao registrada com sucesso.",
+      guest: primaryGuest,
+      companions,
     });
   } catch (error) {
     console.error("Erro ao registrar RSVP:", error);
-    return res.status(500).json({ message: "Erro ao registrar confirmação." });
+    return res.status(500).json({ message: "Erro ao registrar confirmacao." });
   }
 }
 
@@ -69,7 +148,7 @@ export async function createAdminGuest(req: Request, res: Response) {
     const name = sanitizeText(req.body.name, 120);
 
     if (!name) {
-      return res.status(400).json({ message: "Nome é obrigatório." });
+      return res.status(400).json({ message: "Nome e obrigatorio." });
     }
 
     const status = req.body.status === "not_confirmed" ? "not_confirmed" : "confirmed";
@@ -102,7 +181,7 @@ export async function confirmGuest(req: Request, res: Response) {
     );
 
     if (!guest) {
-      return res.status(404).json({ message: "Convidado não encontrado." });
+      return res.status(404).json({ message: "Convidado nao encontrado." });
     }
 
     return res.json(guest);
@@ -117,7 +196,7 @@ export async function updateGuest(req: Request, res: Response) {
     const name = sanitizeText(req.body.name, 120);
 
     if (!name) {
-      return res.status(400).json({ message: "Nome é obrigatório." });
+      return res.status(400).json({ message: "Nome e obrigatorio." });
     }
 
     const status = req.body.status === "not_confirmed" ? "not_confirmed" : "confirmed";
@@ -139,7 +218,7 @@ export async function updateGuest(req: Request, res: Response) {
     );
 
     if (!guest) {
-      return res.status(404).json({ message: "Convidado não encontrado." });
+      return res.status(404).json({ message: "Convidado nao encontrado." });
     }
 
     return res.json(guest);
@@ -158,13 +237,13 @@ export async function unconfirmGuest(req: Request, res: Response) {
     );
 
     if (!guest) {
-      return res.status(404).json({ message: "Convidado não encontrado." });
+      return res.status(404).json({ message: "Convidado nao encontrado." });
     }
 
     return res.json(guest);
   } catch (error) {
-    console.error("Erro ao marcar ausência:", error);
-    return res.status(500).json({ message: "Erro ao marcar ausência." });
+    console.error("Erro ao marcar ausencia:", error);
+    return res.status(500).json({ message: "Erro ao marcar ausencia." });
   }
 }
 
@@ -173,7 +252,7 @@ export async function deleteGuest(req: Request, res: Response) {
     const guest = await Guest.findByIdAndDelete(req.params.id);
 
     if (!guest) {
-      return res.status(404).json({ message: "Convidado não encontrado." });
+      return res.status(404).json({ message: "Convidado nao encontrado." });
     }
 
     return res.status(204).send();
