@@ -73,8 +73,12 @@ async function searchRsvpGuests(req, res) {
 async function createRsvp(req, res) {
     try {
         const primaryGuest = await resolvePrimaryGuest(req.body);
+        const message = sanitizeText(req.body.message, 800);
         if (!primaryGuest) {
             return res.status(400).json({ message: "Selecione um nome valido da lista de convidados." });
+        }
+        if (!message) {
+            return res.status(400).json({ message: "Mensagem e obrigatoria." });
         }
         const companionIds = parseCompanionIds(req.body.companionGuestIds).filter((id) => id !== String(primaryGuest._id));
         const companions = companionIds.length > 0
@@ -85,7 +89,7 @@ async function createRsvp(req, res) {
         }
         primaryGuest.email = sanitizeText(req.body.email, 180).toLowerCase();
         primaryGuest.phone = sanitizeText(req.body.phone, 40);
-        primaryGuest.message = sanitizeText(req.body.message, 800);
+        primaryGuest.message = message;
         primaryGuest.companions = companions.map((guest) => guest.name).join(", ");
         primaryGuest.isAttending = true;
         primaryGuest.status = "confirmed";

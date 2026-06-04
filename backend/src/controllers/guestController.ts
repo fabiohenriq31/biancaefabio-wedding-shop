@@ -78,9 +78,14 @@ export async function searchRsvpGuests(req: Request, res: Response) {
 export async function createRsvp(req: Request, res: Response) {
   try {
     const primaryGuest = await resolvePrimaryGuest(req.body);
+    const message = sanitizeText(req.body.message, 800);
 
     if (!primaryGuest) {
       return res.status(400).json({ message: "Selecione um nome valido da lista de convidados." });
+    }
+
+    if (!message) {
+      return res.status(400).json({ message: "Mensagem e obrigatoria." });
     }
 
     const companionIds = parseCompanionIds(req.body.companionGuestIds).filter(
@@ -97,7 +102,7 @@ export async function createRsvp(req: Request, res: Response) {
 
     primaryGuest.email = sanitizeText(req.body.email, 180).toLowerCase();
     primaryGuest.phone = sanitizeText(req.body.phone, 40);
-    primaryGuest.message = sanitizeText(req.body.message, 800);
+    primaryGuest.message = message;
     primaryGuest.companions = companions.map((guest) => guest.name).join(", ");
     primaryGuest.isAttending = true;
     primaryGuest.status = "confirmed";
