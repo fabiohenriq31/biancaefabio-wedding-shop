@@ -36,8 +36,8 @@ export function ChatPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col border-r border-[var(--wedding-beige)] bg-white">
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/95 px-5 py-4 text-white backdrop-blur lg:top-20 lg:border-[var(--wedding-beige)] lg:bg-white/90 lg:text-[var(--wedding-text)]">
+    <main className="flex min-h-screen flex-col border-r border-[var(--wedding-beige)] bg-white pb-[calc(136px+env(safe-area-inset-bottom))] lg:pb-0">
+      <header className="sticky top-0 z-10 border-b border-[var(--wedding-beige)] bg-white/95 px-5 py-4 text-[var(--wedding-text)] backdrop-blur lg:top-20 lg:bg-white/90">
         <h1 className="text-xl font-semibold">Bate-papo</h1>
         <p className="text-xs text-[var(--wedding-text-light)]">Grupo geral com todos os convidados</p>
       </header>
@@ -57,7 +57,7 @@ export function ChatPage() {
         })}
         <div ref={endRef} />
       </section>
-      <form onSubmit={handleSubmit} className="sticky bottom-0 flex gap-3 border-t border-[var(--wedding-beige)] bg-white p-4">
+      <form onSubmit={handleSubmit} className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 flex gap-3 border-t border-[var(--wedding-beige)] bg-white p-4 lg:sticky lg:bottom-0 lg:inset-x-auto">
         <input value={message} onChange={(event) => setMessage(event.target.value)} className="flex-1 rounded-full bg-[var(--wedding-beige)] px-5 py-3 outline-none" placeholder="Mensagem para o grupo..." maxLength={500} />
         <button type="submit" className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--wedding-text)] text-white"><Send className="h-5 w-5" /></button>
       </form>
