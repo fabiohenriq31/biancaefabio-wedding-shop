@@ -2,7 +2,7 @@
   "name": "Bianca & Fabio",
   "short_name": "B&F",
   "description": "Shopping, presentes e B&F Social do casamento Bianca & Fabio.",
-  "start_url": "/shopping",
+  "start_url": "/shopping/social",
   "scope": "/",
   "display": "standalone",
   "background_color": "#faf8f7",
