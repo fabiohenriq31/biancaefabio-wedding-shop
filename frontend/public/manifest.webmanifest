@@ -10,9 +10,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -21,13 +21,13 @@
       "name": "B&F Social",
       "short_name": "Social",
       "url": "/shopping/social",
-      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/app-icon.png", "sizes": "512x512", "type": "image/png" }]
     },
     {
       "name": "Presentes",
       "short_name": "Presentes",
       "url": "/shopping/products",
-      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/app-icon.png", "sizes": "512x512", "type": "image/png" }]
     }
   ]
 }

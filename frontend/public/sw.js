@@ -1,5 +1,5 @@
-const CACHE_NAME = 'bianca-fabio-app-v1';
-const APP_SHELL = ['/', '/shopping', '/manifest.webmanifest', '/app-icon.svg'];
+const CACHE_NAME = 'bianca-fabio-app-v2';
+const APP_SHELL = ['/', '/shopping', '/manifest.webmanifest', '/app-icon.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
