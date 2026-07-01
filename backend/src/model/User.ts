@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     avatarUrl: { type: String, default: null },
+    avatarPublicId: { type: String, default: null },
     passwordHash: { type: String, default: null, select: false },
     role: {
       type: String,
@@ -14,7 +15,7 @@ const userSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ["google", "local"],
+      enum: ["google", "local", "both"],
       default: "google",
     },
   },

@@ -7,7 +7,9 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { SocialPage } from './pages/SocialPage';
 import { AdminProtectedPage } from './components/AdminProtectedPage';
+import { AccountProtectedPage } from './components/AccountProtectedPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminDaySchedulePage } from './pages/admin/AdminDaySchedulePage';
 import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
@@ -16,6 +18,7 @@ import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminGuestsPage } from './pages/admin/AdminGuestsPage';
 import { AdminFinancePage } from './pages/admin/AdminFinancePage';
 import { AdminSuppliersPage } from './pages/admin/AdminSuppliersPage';
+import { AdminSocialPostsPage } from './pages/admin/AdminSocialPostsPage';
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +34,12 @@ export const router = createBrowserRouter([
       { path: 'success', Component: SuccessPage },
       { path: 'profile', Component: ProfilePage },
       { path: 'orders', Component: ProfilePage },
+      {
+        Component: AccountProtectedPage,
+        children: [
+          { path: 'social', Component: SocialPage },
+        ],
+      },
       {
         path: 'admin',
         loader: () => {
@@ -52,6 +61,7 @@ export const router = createBrowserRouter([
       { path: 'financeiro', Component: AdminFinancePage },
       { path: 'fornecedores', Component: AdminSuppliersPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },
+      { path: 'social', Component: AdminSocialPostsPage },
     ],
   },
   {

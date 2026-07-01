@@ -7,6 +7,7 @@ const Order_1 = require("../model/Order");
 const Product_1 = require("../model/Product");
 const Supplier_1 = require("../model/Supplier");
 const FinancialEntry_1 = require("../model/FinancialEntry");
+const SocialPost_1 = require("../model/SocialPost");
 function getSupplierTotals(suppliers) {
     return suppliers.reduce((totals, supplier) => {
         const paid = (supplier.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
@@ -20,7 +21,7 @@ function getSupplierTotals(suppliers) {
 }
 async function getAdminSummary(_req, res) {
     try {
-        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, groomsmenGuests, regularGuests, childGuests, payingGuests, suppliers, financeEntries, latestPhotos, latestOrders, latestGuests,] = await Promise.all([
+        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, groomsmenGuests, regularGuests, childGuests, payingGuests, totalSocialPosts, hiddenSocialPosts, suppliers, financeEntries, latestPhotos, latestSocialPosts, latestOrders, latestGuests,] = await Promise.all([
             Product_1.Product.countDocuments({ isActive: true }),
             Order_1.Order.countDocuments(),
             GuestPhoto_1.GuestPhoto.countDocuments(),
@@ -33,9 +34,12 @@ async function getAdminSummary(_req, res) {
             Guest_1.Guest.countDocuments({ guestType: "guest" }),
             Guest_1.Guest.countDocuments({ isChild: true }),
             Guest_1.Guest.countDocuments({ isChild: false }),
+            SocialPost_1.SocialPost.countDocuments(),
+            SocialPost_1.SocialPost.countDocuments({ status: "hidden" }),
             Supplier_1.Supplier.find().sort({ createdAt: -1 }),
             FinancialEntry_1.FinancialEntry.find().sort({ savedAt: -1, createdAt: -1 }),
             GuestPhoto_1.GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
+            SocialPost_1.SocialPost.find().sort({ createdAt: -1 }).limit(6),
             Order_1.Order.find().sort({ createdAt: -1 }).limit(6),
             Guest_1.Guest.find().sort({ createdAt: -1 }).limit(6),
         ]);
@@ -60,6 +64,8 @@ async function getAdminSummary(_req, res) {
             regularGuests,
             childGuests,
             payingGuests,
+            totalSocialPosts,
+            hiddenSocialPosts,
             confirmedPayingGuests,
             financialReserveTotal: totalReserved,
             remainingToSave,
@@ -72,6 +78,7 @@ async function getAdminSummary(_req, res) {
             latestFinancialEntries: financeEntries.slice(0, 6),
             latestSuppliers: suppliers.slice(0, 6),
             latestPhotos,
+            latestSocialPosts,
             latestOrders,
             latestGuests,
         });

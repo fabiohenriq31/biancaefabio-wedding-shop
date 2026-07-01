@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadGuestPhoto = uploadGuestPhoto;
+exports.uploadSocialPostImage = uploadSocialPostImage;
+exports.uploadUserAvatar = uploadUserAvatar;
 exports.deleteGuestPhoto = deleteGuestPhoto;
 exports.buildThumbnailUrl = buildThumbnailUrl;
 const cloudinary_1 = require("cloudinary");
@@ -11,6 +13,8 @@ cloudinary_1.v2.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 const folder = process.env.CLOUDINARY_FOLDER || "casamento/guest-photos";
+const socialFolder = process.env.CLOUDINARY_SOCIAL_FOLDER || "casamento/social-posts";
+const avatarFolder = process.env.CLOUDINARY_AVATAR_FOLDER || "casamento/avatars";
 async function uploadGuestPhoto(file) {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary_1.v2.uploader.upload_stream({
@@ -23,6 +27,41 @@ async function uploadGuestPhoto(file) {
         }, (error, result) => {
             if (error || !result) {
                 return reject(error || new Error("Erro ao enviar imagem."));
+            }
+            resolve(result);
+        });
+        stream_1.Readable.from(file.buffer).pipe(uploadStream);
+    });
+}
+async function uploadSocialPostImage(file) {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+            folder: socialFolder,
+            resource_type: "image",
+            transformation: [
+                { quality: "auto", fetch_format: "auto" },
+                { width: 1800, crop: "limit" },
+            ],
+        }, (error, result) => {
+            if (error || !result) {
+                return reject(error || new Error("Erro ao enviar imagem."));
+            }
+            resolve(result);
+        });
+        stream_1.Readable.from(file.buffer).pipe(uploadStream);
+    });
+}
+async function uploadUserAvatar(file) {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+            folder: avatarFolder,
+            resource_type: "image",
+            transformation: [
+                { width: 600, height: 600, crop: "fill", gravity: "face", quality: "auto", fetch_format: "auto" },
+            ],
+        }, (error, result) => {
+            if (error || !result) {
+                return reject(error || new Error("Erro ao enviar avatar."));
             }
             resolve(result);
         });

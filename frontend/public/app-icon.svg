@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1f1f1f"/>
+  <circle cx="256" cy="214" r="118" fill="#bd945a"/>
+  <path d="M147 354c42-52 176-52 218 0" fill="none" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
+  <text x="256" y="246" text-anchor="middle" font-family="Georgia, serif" font-size="92" fill="#fff">B&amp;F</text>
+</svg>

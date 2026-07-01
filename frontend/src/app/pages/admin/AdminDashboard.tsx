@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   EyeOff,
   HandCoins,
+  MessageSquareText,
   Package,
   PiggyBank,
   ShoppingBag,
@@ -53,6 +54,7 @@ export function AdminDashboard() {
 
   const latestFinancialEntries = summary?.latestFinancialEntries ?? [];
   const latestPhotos = summary?.latestPhotos ?? [];
+  const latestSocialPosts = summary?.latestSocialPosts ?? [];
   const latestGuests = summary?.latestGuests ?? [];
   const latestSuppliers = summary?.latestSuppliers ?? [];
   const latestOrders = summary?.latestOrders ?? [];
@@ -76,6 +78,8 @@ export function AdminDashboard() {
             <StatCard label="Pedidos" value={summary.totalOrders} icon={ShoppingBag} />
             <StatCard label="Fotos enviadas" value={summary.totalPhotos} icon={Camera} />
             <StatCard label="Fotos ocultadas" value={summary.hiddenPhotos} icon={EyeOff} />
+            <StatCard label="Posts no B&F Social" value={summary.totalSocialPosts} icon={MessageSquareText} />
+            <StatCard label="Posts ocultos" value={summary.hiddenSocialPosts} icon={EyeOff} />
             <StatCard label="Convidados no RSVP" value={summary.totalGuests} icon={Users} />
             <StatCard label="Presencas confirmadas" value={summary.confirmedGuests} icon={CheckCircle2} />
             <StatCard label="Nao confirmados" value={summary.notConfirmedGuests} icon={XCircle} />
@@ -153,6 +157,21 @@ export function AdminDashboard() {
               </div>
               {latestPhotos.length === 0 && (
                 <p className="text-[var(--wedding-text-light)]">Nenhuma foto enviada ainda.</p>
+              )}
+            </section>
+
+            <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl text-[var(--wedding-text)]">Ultimos posts do B&F Social</h2>
+              <div className="space-y-4">
+                {latestSocialPosts.map((post) => (
+                  <div key={post._id} className="border-b border-[var(--wedding-beige)] pb-4 last:border-0">
+                    <p className="font-medium text-[var(--wedding-text)]">{post.authorName || 'Convidado'}</p>
+                    <p className="line-clamp-2 text-sm text-[var(--wedding-text-light)]">{post.message}</p>
+                  </div>
+                ))}
+              </div>
+              {latestSocialPosts.length === 0 && (
+                <p className="text-[var(--wedding-text-light)]">Nenhum post publicado ainda.</p>
               )}
             </section>
 

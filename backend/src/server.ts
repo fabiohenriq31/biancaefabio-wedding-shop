@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import guestPhotosRoutes from "./routes/guestPhotosRoutes";
+import socialPostsRoutes from "./routes/socialPostsRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import guestRoutes from "./routes/guestRoutes";
 
@@ -51,11 +52,13 @@ app.get("/shopping", (_req,res) => {
 
 app.use("/products", productRoutes);
 app.use("/guest-photos", guestPhotosRoutes);
+app.use("/social-posts", socialPostsRoutes);
 app.use("/rsvp", guestRoutes);
 app.use("/admin", adminRoutes);
 
 app.use("/api/products", productRoutes);
 app.use("/api/guest-photos", guestPhotosRoutes);
+app.use("/api/social-posts", socialPostsRoutes);
 app.use("/api/rsvp", guestRoutes);
 app.use("/api/admin", adminRoutes);
 

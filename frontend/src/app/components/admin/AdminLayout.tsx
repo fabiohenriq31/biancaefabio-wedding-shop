@@ -1,4 +1,4 @@
-import { CalendarDays, Camera, ClipboardList, Gift, HandCoins, LayoutDashboard, Package, PiggyBank, Users } from 'lucide-react';
+import { CalendarDays, Camera, ClipboardList, Gift, HandCoins, LayoutDashboard, MessageSquareText, Package, PiggyBank, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/financeiro', label: 'Financeiro', icon: PiggyBank },
   { to: '/admin/fornecedores', label: 'Fornecedores', icon: HandCoins },
   { to: '/admin/fotos', label: 'Fotos dos convidados', icon: Camera },
+  { to: '/admin/social', label: 'B&F Social', icon: MessageSquareText },
 ];
 
 export function AdminLayout() {

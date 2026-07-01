@@ -14,6 +14,7 @@ type AuthContextType = {
   token: string | null;
   isLoggedIn: boolean;
   login: (data: { token: string; user: AuthUser }) => void;
+  updateUser: (user: AuthUser) => void;
   logout: () => void;
 };
 
@@ -42,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
   };
 
+  const updateUser = (updatedUser: AuthUser) => {
+    setUser(updatedUser);
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token, user: updatedUser }));
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -54,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       isLoggedIn: !!token,
       login,
+      updateUser,
       logout,
     }),
     [user, token]

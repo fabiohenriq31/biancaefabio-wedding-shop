@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Mail, Calendar, Heart, Package } from 'lucide-react';
+import { Camera, Calendar, Heart, Mail, Package, Save } from 'lucide-react';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../contexts/AuthContext';
+import { updateProfile } from '../services/authService';
 import { getOrdersByUser } from '../services/orderService';
 
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, token, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
+  const [profileError, setProfileError] = useState('');
 
   useEffect(() => {
     async function loadOrders() {
@@ -35,6 +41,10 @@ export function ProfilePage() {
     loadOrders();
   }, [user, navigate]);
 
+  useEffect(() => {
+    setProfileName(user?.name || '');
+  }, [user?.name]);
+
   if (!user) return null;
 
   const handleLogout = () => {
@@ -45,6 +55,26 @@ export function ProfilePage() {
   const memberSince = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('pt-BR')
     : 'Agora';
+
+  async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!token) return;
+
+    try {
+      setSavingProfile(true);
+      setProfileMessage('');
+      setProfileError('');
+      const data = await updateProfile(token, { name: profileName, avatar });
+      updateUser(data.user);
+      setAvatar(null);
+      setProfileMessage('Perfil atualizado com sucesso.');
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : 'Erro ao atualizar perfil.');
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   return (
     <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)] py-12">
@@ -106,6 +136,37 @@ export function ProfilePage() {
                   Sair da conta
                 </Button>
               </div>
+            </Card>
+
+            <Card className="mt-6">
+              <form onSubmit={handleProfileSubmit} className="space-y-4">
+                <h2 className="text-2xl text-[var(--wedding-text)]">Editar perfil</h2>
+                <div>
+                  <label className="mb-2 block text-sm text-[var(--wedding-text)]">Nome exibido</label>
+                  <input
+                    value={profileName}
+                    onChange={(event) => setProfileName(event.target.value)}
+                    className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none"
+                    required
+                  />
+                </div>
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-[var(--wedding-gold)] px-4 py-3 text-sm text-[var(--wedding-text)]">
+                  <Camera className="h-4 w-4" />
+                  {avatar ? avatar.name : 'Trocar foto do perfil'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                    className="hidden"
+                    onChange={(event) => setAvatar(event.target.files?.[0] || null)}
+                  />
+                </label>
+                {profileMessage && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{profileMessage}</p>}
+                {profileError && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{profileError}</p>}
+                <Button type="submit" className="w-full gap-2" disabled={savingProfile}>
+                  <Save className="h-4 w-4" />
+                  {savingProfile ? 'Salvando...' : 'Salvar perfil'}
+                </Button>
+              </form>
             </Card>
           </div>
 

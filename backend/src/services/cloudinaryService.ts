@@ -8,6 +8,8 @@ cloudinary.config({
 });
 
 const folder = process.env.CLOUDINARY_FOLDER || "casamento/guest-photos";
+const socialFolder = process.env.CLOUDINARY_SOCIAL_FOLDER || "casamento/social-posts";
+const avatarFolder = process.env.CLOUDINARY_AVATAR_FOLDER || "casamento/avatars";
 
 export async function uploadGuestPhoto(file: Express.Multer.File) {
   return new Promise<UploadApiResponse>((resolve, reject) => {
@@ -23,6 +25,53 @@ export async function uploadGuestPhoto(file: Express.Multer.File) {
       (error, result) => {
         if (error || !result) {
           return reject(error || new Error("Erro ao enviar imagem."));
+        }
+
+        resolve(result);
+      }
+    );
+
+    Readable.from(file.buffer).pipe(uploadStream);
+  });
+}
+
+export async function uploadSocialPostImage(file: Express.Multer.File) {
+  return new Promise<UploadApiResponse>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: socialFolder,
+        resource_type: "image",
+        transformation: [
+          { quality: "auto", fetch_format: "auto" },
+          { width: 1800, crop: "limit" },
+        ],
+      },
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error("Erro ao enviar imagem."));
+        }
+
+        resolve(result);
+      }
+    );
+
+    Readable.from(file.buffer).pipe(uploadStream);
+  });
+}
+
+export async function uploadUserAvatar(file: Express.Multer.File) {
+  return new Promise<UploadApiResponse>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: avatarFolder,
+        resource_type: "image",
+        transformation: [
+          { width: 600, height: 600, crop: "fill", gravity: "face", quality: "auto", fetch_format: "auto" },
+        ],
+      },
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error("Erro ao enviar avatar."));
         }
 
         resolve(result);

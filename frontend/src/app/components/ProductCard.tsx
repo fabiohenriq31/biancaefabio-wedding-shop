@@ -3,6 +3,7 @@ import type { Product } from '../types';
 import { Button } from './Button';
 import { Badge } from './Badge';
 import { useState } from 'react';
+import { ProductImage } from './ProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -17,7 +18,7 @@ export function ProductCard({ product, onAddToCart, onViewDetails }: ProductCard
     <div className="group bg-white rounded-lg overflow-hidden shadow-sm border border-[var(--wedding-beige)] hover:shadow-md transition-all duration-300">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-[var(--wedding-beige)]">
-        <img
+        <ProductImage
           src={product.imageUrl}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

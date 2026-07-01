@@ -5,6 +5,7 @@ import { Order } from "../model/Order";
 import { Product } from "../model/Product";
 import { Supplier } from "../model/Supplier";
 import { FinancialEntry } from "../model/FinancialEntry";
+import { SocialPost } from "../model/SocialPost";
 
 function getSupplierTotals(suppliers: any[]) {
   return suppliers.reduce(
@@ -38,9 +39,12 @@ export async function getAdminSummary(_req: Request, res: Response) {
       regularGuests,
       childGuests,
       payingGuests,
+      totalSocialPosts,
+      hiddenSocialPosts,
       suppliers,
       financeEntries,
       latestPhotos,
+      latestSocialPosts,
       latestOrders,
       latestGuests,
     ] = await Promise.all([
@@ -56,9 +60,12 @@ export async function getAdminSummary(_req: Request, res: Response) {
       Guest.countDocuments({ guestType: "guest" }),
       Guest.countDocuments({ isChild: true }),
       Guest.countDocuments({ isChild: false }),
+      SocialPost.countDocuments(),
+      SocialPost.countDocuments({ status: "hidden" }),
       Supplier.find().sort({ createdAt: -1 }),
       FinancialEntry.find().sort({ savedAt: -1, createdAt: -1 }),
       GuestPhoto.find().sort({ createdAt: -1 }).limit(6),
+      SocialPost.find().sort({ createdAt: -1 }).limit(6),
       Order.find().sort({ createdAt: -1 }).limit(6),
       Guest.find().sort({ createdAt: -1 }).limit(6),
     ]);
@@ -90,6 +97,8 @@ export async function getAdminSummary(_req: Request, res: Response) {
       regularGuests,
       childGuests,
       payingGuests,
+      totalSocialPosts,
+      hiddenSocialPosts,
       confirmedPayingGuests,
       financialReserveTotal: totalReserved,
       remainingToSave,
@@ -102,6 +111,7 @@ export async function getAdminSummary(_req: Request, res: Response) {
       latestFinancialEntries: financeEntries.slice(0, 6),
       latestSuppliers: suppliers.slice(0, 6),
       latestPhotos,
+      latestSocialPosts,
       latestOrders,
       latestGuests,
     });

@@ -35,6 +35,12 @@ export function Header() {
             >
               Presentes
             </Link>
+            <Link
+              to="/shopping/social"
+              className="text-[var(--wedding-text-light)] hover:text-[var(--wedding-text)] transition-colors"
+            >
+              B&F Social
+            </Link>
             <a
               href="https://biancaefabio.com.br"
               className="text-[var(--wedding-text-light)] hover:text-[var(--wedding-text)] transition-colors"

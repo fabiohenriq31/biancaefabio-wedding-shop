@@ -1,0 +1,33 @@
+{
+  "name": "Bianca & Fabio",
+  "short_name": "B&F",
+  "description": "Shopping, presentes e B&F Social do casamento Bianca & Fabio.",
+  "start_url": "/shopping",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf8f7",
+  "theme_color": "#1f1f1f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "B&F Social",
+      "short_name": "Social",
+      "url": "/shopping/social",
+      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Presentes",
+      "short_name": "Presentes",
+      "url": "/shopping/products",
+      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

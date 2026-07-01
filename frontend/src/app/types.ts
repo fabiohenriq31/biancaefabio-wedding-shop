@@ -74,6 +74,7 @@ export interface Order {
 }
 
 export type GuestPhotoStatus = 'approved' | 'hidden';
+export type SocialPostStatus = 'approved' | 'hidden';
 export type GuestStatus = 'confirmed' | 'not_confirmed';
 export type GuestType = 'guest' | 'groomsman';
 export type WeddingDayKey = 'friday' | 'saturday' | 'sunday';
@@ -86,6 +87,22 @@ export interface GuestPhoto {
   guestName: string;
   isApproved: boolean;
   status: GuestPhotoStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SocialPost {
+  _id: string;
+  authorId?: string | null;
+  authorName: string;
+  authorAvatarUrl?: string | null;
+  message: string;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  publicId?: string | null;
+  likeCount: number;
+  isApproved: boolean;
+  status: SocialPostStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -118,6 +135,8 @@ export interface AdminSummary {
   totalOrders: number;
   totalPhotos: number;
   hiddenPhotos: number;
+  totalSocialPosts: number;
+  hiddenSocialPosts: number;
   totalGuests: number;
   confirmedGuests: number;
   notConfirmedGuests: number;
@@ -135,6 +154,7 @@ export interface AdminSummary {
   supplierTotalPaid: number;
   supplierTotalPending: number;
   latestFinancialEntries: FinancialEntry[];
+  latestSocialPosts: SocialPost[];
   latestSuppliers: Supplier[];
   latestPhotos: GuestPhoto[];
   latestOrders: Order[];

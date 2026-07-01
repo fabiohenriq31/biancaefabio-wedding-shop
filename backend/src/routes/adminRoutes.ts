@@ -32,6 +32,12 @@ import {
   removeSupplier,
   updateSupplier,
 } from "../controllers/supplierController";
+import {
+  getAdminSocialPosts,
+  hideSocialPost,
+  removeSocialPost,
+  showSocialPost,
+} from "../controllers/socialPostsController";
 import { requireAdmin } from "../middleware/adminMiddleware";
 import { requireAuth } from "../middleware/authMiddleware";
 
@@ -62,5 +68,9 @@ router.get("/guest-photos", getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", hideGuestPhoto);
 router.patch("/guest-photos/:id/show", showGuestPhoto);
 router.delete("/guest-photos/:id", removeGuestPhoto);
+router.get("/social-posts", getAdminSocialPosts);
+router.patch("/social-posts/:id/hide", hideSocialPost);
+router.patch("/social-posts/:id/show", showSocialPost);
+router.delete("/social-posts/:id", removeSocialPost);
 
 export default router;

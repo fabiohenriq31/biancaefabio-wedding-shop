@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getProducts } from '../services/productService';
 import { Modal } from '../components/Modal';
 import type { Product } from '../types';
+import { ProductImage } from '../components/ProductImage';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -223,19 +224,12 @@ export function LandingPage() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              {selectedProduct.imageUrl ? (
-                <img
-                  src={selectedProduct.imageUrl}
-                  alt={selectedProduct.name}
-                  className="w-full h-80 object-cover rounded-lg"
-                />
-              ) : (
-                <div className="w-full h-80 bg-[var(--wedding-beige)] rounded-lg flex items-center justify-center">
-                  <span className="text-[var(--wedding-text-light)]">
-                    Presente simbólico
-                  </span>
-                </div>
-              )}
+              <ProductImage
+                src={selectedProduct.imageUrl}
+                alt={selectedProduct.name}
+                className="w-full h-80 object-cover rounded-lg"
+                fallbackClassName="h-80 rounded-lg"
+              />
             </div>
 
             <div>

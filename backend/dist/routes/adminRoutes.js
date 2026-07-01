@@ -7,6 +7,7 @@ const adminFinanceController_1 = require("../controllers/adminFinanceController"
 const guestController_1 = require("../controllers/guestController");
 const guestPhotosController_1 = require("../controllers/guestPhotosController");
 const supplierController_1 = require("../controllers/supplierController");
+const socialPostsController_1 = require("../controllers/socialPostsController");
 const adminMiddleware_1 = require("../middleware/adminMiddleware");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
@@ -34,5 +35,9 @@ router.get("/guest-photos", guestPhotosController_1.getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", guestPhotosController_1.hideGuestPhoto);
 router.patch("/guest-photos/:id/show", guestPhotosController_1.showGuestPhoto);
 router.delete("/guest-photos/:id", guestPhotosController_1.removeGuestPhoto);
+router.get("/social-posts", socialPostsController_1.getAdminSocialPosts);
+router.patch("/social-posts/:id/hide", socialPostsController_1.hideSocialPost);
+router.patch("/social-posts/:id/show", socialPostsController_1.showSocialPost);
+router.delete("/social-posts/:id", socialPostsController_1.removeSocialPost);
 exports.default = router;
 //# sourceMappingURL=adminRoutes.js.map
