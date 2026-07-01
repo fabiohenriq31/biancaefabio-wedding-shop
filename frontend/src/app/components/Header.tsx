@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { ShoppingCart, User, Heart, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -8,7 +8,9 @@ export function Header() {
   const { user, isLoggedIn, logout } = useAuth();
   const { cartCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const isSocialRoute = location.pathname.startsWith('/shopping/social');
 
   const handleLogout = () => {
     logout();
@@ -17,7 +19,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[var(--wedding-beige)]">
+    <header className={`${isSocialRoute ? 'hidden lg:sticky lg:block' : 'sticky'} top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[var(--wedding-beige)]`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}

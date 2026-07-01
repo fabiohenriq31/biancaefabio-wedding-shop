@@ -19,7 +19,7 @@ export function NotificationsPage() {
 
   return (
     <main className="min-h-screen border-r border-[var(--wedding-beige)] bg-white">
-      <header className="sticky top-20 z-10 border-b border-[var(--wedding-beige)] bg-white/90 px-5 py-4 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/95 px-5 py-4 text-white backdrop-blur lg:top-20 lg:border-[var(--wedding-beige)] lg:bg-white/90 lg:text-[var(--wedding-text)]">
         <h1 className="text-xl font-semibold">Notificacoes</h1>
         <p className="text-xs text-[var(--wedding-text-light)]">Atividades recentes do B&F Social</p>
       </header>

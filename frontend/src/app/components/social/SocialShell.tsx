@@ -15,7 +15,7 @@ export function SocialShell() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#fbf9f7] text-[var(--wedding-text)]">
+    <div className="min-h-screen bg-black text-white lg:min-h-[calc(100vh-80px)] lg:bg-[#fbf9f7] lg:text-[var(--wedding-text)]">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-[260px_minmax(0,640px)_320px]">
         <aside className="sticky top-20 hidden h-[calc(100vh-80px)] border-r border-[var(--wedding-beige)] bg-white/70 px-4 py-6 lg:block">
           <Link to="/shopping" className="mb-8 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--wedding-text)] text-lg font-semibold text-white">
@@ -59,6 +59,28 @@ export function SocialShell() {
 
         <Outlet />
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-white/10 bg-black text-white lg:hidden">
+        {[
+          { label: 'Inicio', icon: Home, to: '/shopping/social' },
+          { label: 'Explorar', icon: Search, to: '/shopping/products' },
+          { label: 'Convidados', icon: Users, to: '/shopping/social/guests' },
+          { label: 'Avisos', icon: Bell, to: '/shopping/social/notifications' },
+          { label: 'Chat', icon: MessageCircle, to: '/shopping/social/chat' },
+        ].map(({ label, icon: Icon, to }) => (
+          <NavLink
+            key={label}
+            to={to}
+            end={to === '/shopping/social'}
+            className={({ isActive }) =>
+              `flex items-center justify-center ${isActive ? 'text-white' : 'text-white/60'}`
+            }
+            aria-label={label}
+          >
+            <Icon className="h-7 w-7" />
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }
