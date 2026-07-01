@@ -70,7 +70,15 @@ export function ProfilePage() {
       setAvatar(null);
       setProfileMessage('Perfil atualizado com sucesso.');
     } catch (error) {
-      setProfileError(error instanceof Error ? error.message : 'Erro ao atualizar perfil.');
+      const message = error instanceof Error ? error.message : 'Erro ao atualizar perfil.';
+
+      if (message.toLowerCase().includes('autorizado') || message.toLowerCase().includes('token')) {
+        logout();
+        navigate('/shopping/login?redirect=/shopping/profile');
+        return;
+      }
+
+      setProfileError(message);
     } finally {
       setSavingProfile(false);
     }
