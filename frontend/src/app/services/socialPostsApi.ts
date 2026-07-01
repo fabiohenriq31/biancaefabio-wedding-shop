@@ -64,3 +64,36 @@ export async function likeSocialPost(token: string, id: string) {
 
   return data as SocialPost;
 }
+
+export async function updateSocialPost(token: string, id: string, message: string) {
+  const response = await fetch(`${API_URL}/api/social-posts/${id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Nao foi possivel editar o post.');
+  }
+
+  return data as SocialPost;
+}
+
+export async function deleteSocialPost(token: string, id: string) {
+  const response = await fetch(`${API_URL}/api/social-posts/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || 'Nao foi possivel excluir o post.');
+  }
+}

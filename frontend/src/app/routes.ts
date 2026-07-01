@@ -10,6 +10,10 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SocialPage } from './pages/SocialPage';
 import { AdminProtectedPage } from './components/AdminProtectedPage';
 import { AccountProtectedPage } from './components/AccountProtectedPage';
+import { SocialShell } from './components/social/SocialShell';
+import { ChatPage } from './pages/social/ChatPage';
+import { GuestsPage } from './pages/social/GuestsPage';
+import { NotificationsPage } from './pages/social/NotificationsPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminDaySchedulePage } from './pages/admin/AdminDaySchedulePage';
 import { AdminGuestPhotosPage } from './pages/admin/AdminGuestPhotosPage';
@@ -37,7 +41,16 @@ export const router = createBrowserRouter([
       {
         Component: AccountProtectedPage,
         children: [
-          { path: 'social', Component: SocialPage },
+          {
+            path: 'social',
+            Component: SocialShell,
+            children: [
+              { index: true, Component: SocialPage },
+              { path: 'notifications', Component: NotificationsPage },
+              { path: 'chat', Component: ChatPage },
+              { path: 'guests', Component: GuestsPage },
+            ],
+          },
         ],
       },
       {

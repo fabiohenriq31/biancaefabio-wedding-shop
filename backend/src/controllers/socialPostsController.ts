@@ -114,6 +114,59 @@ export async function likeSocialPost(req: Request, res: Response) {
   }
 }
 
+export async function updateSocialPost(req: Request, res: Response) {
+  try {
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Nao autorizado." });
+    }
+
+    const message = sanitizeMessage(req.body.message);
+
+    if (!message) {
+      return res.status(400).json({ message: "Escreva uma mensagem." });
+    }
+
+    const post = await SocialPost.findOneAndUpdate(
+      { _id: req.params.id, authorId: req.user.sub },
+      { message },
+      { new: true }
+    );
+
+    if (!post) {
+      return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
+    }
+
+    return res.json(post);
+  } catch (error) {
+    console.error("Erro ao editar post:", error);
+    return res.status(500).json({ message: "Erro ao editar post." });
+  }
+}
+
+export async function deleteOwnSocialPost(req: Request, res: Response) {
+  try {
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Nao autorizado." });
+    }
+
+    const post = await SocialPost.findOne({ _id: req.params.id, authorId: req.user.sub });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
+    }
+
+    if (post.publicId) {
+      await deleteGuestPhoto(post.publicId);
+    }
+
+    await post.deleteOne();
+    return res.status(204).send();
+  } catch (error) {
+    console.error("Erro ao excluir post:", error);
+    return res.status(500).json({ message: "Erro ao excluir post." });
+  }
+}
+
 export async function getAdminSocialPosts(req: Request, res: Response) {
   try {
     const status = String(req.query.status || "all");

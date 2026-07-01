@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPublicSocialPosts = getPublicSocialPosts;
 exports.createSocialPost = createSocialPost;
 exports.likeSocialPost = likeSocialPost;
+exports.updateSocialPost = updateSocialPost;
+exports.deleteOwnSocialPost = deleteOwnSocialPost;
 exports.getAdminSocialPosts = getAdminSocialPosts;
 exports.hideSocialPost = hideSocialPost;
 exports.showSocialPost = showSocialPost;
@@ -97,6 +99,46 @@ async function likeSocialPost(req, res) {
     catch (error) {
         console.error("Erro ao curtir post:", error);
         return res.status(500).json({ message: "Erro ao curtir post." });
+    }
+}
+async function updateSocialPost(req, res) {
+    try {
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Nao autorizado." });
+        }
+        const message = sanitizeMessage(req.body.message);
+        if (!message) {
+            return res.status(400).json({ message: "Escreva uma mensagem." });
+        }
+        const post = await SocialPost_1.SocialPost.findOneAndUpdate({ _id: req.params.id, authorId: req.user.sub }, { message }, { new: true });
+        if (!post) {
+            return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
+        }
+        return res.json(post);
+    }
+    catch (error) {
+        console.error("Erro ao editar post:", error);
+        return res.status(500).json({ message: "Erro ao editar post." });
+    }
+}
+async function deleteOwnSocialPost(req, res) {
+    try {
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Nao autorizado." });
+        }
+        const post = await SocialPost_1.SocialPost.findOne({ _id: req.params.id, authorId: req.user.sub });
+        if (!post) {
+            return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
+        }
+        if (post.publicId) {
+            await (0, cloudinaryService_1.deleteGuestPhoto)(post.publicId);
+        }
+        await post.deleteOne();
+        return res.status(204).send();
+    }
+    catch (error) {
+        console.error("Erro ao excluir post:", error);
+        return res.status(500).json({ message: "Erro ao excluir post." });
     }
 }
 async function getAdminSocialPosts(req, res) {
