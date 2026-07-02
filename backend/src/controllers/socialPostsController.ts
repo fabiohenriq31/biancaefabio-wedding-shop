@@ -93,24 +93,124 @@ export async function createSocialPost(req: Request, res: Response) {
 
 export async function likeSocialPost(req: Request, res: Response) {
   try {
-    const post = await SocialPost.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        isApproved: true,
-        status: "approved",
-      },
-      { $inc: { likeCount: 1 } },
-      { new: true }
-    );
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Nao autorizado." });
+    }
+
+    const post = await SocialPost.findOne({
+      _id: req.params.id,
+      isApproved: true,
+      status: "approved",
+    });
 
     if (!post) {
       return res.status(404).json({ message: "Post nao encontrado." });
     }
 
+    const likedBy = ((post as any).likedBy || []).map((id: any) => id.toString());
+    const hasLiked = likedBy.includes(req.user.sub);
+
+    if (hasLiked) {
+      (post as any).likedBy = ((post as any).likedBy || []).filter(
+        (id: any) => id.toString() !== req.user?.sub
+      );
+    } else {
+      (post as any).likedBy = [...((post as any).likedBy || []), req.user.sub];
+    }
+
+    post.likeCount = (post as any).likedBy.length;
+    await post.save();
+
     return res.json(post);
   } catch (error) {
     console.error("Erro ao curtir post:", error);
     return res.status(500).json({ message: "Erro ao curtir post." });
+  }
+}
+
+export async function repostSocialPost(req: Request, res: Response) {
+  try {
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Nao autorizado." });
+    }
+
+    const post = await SocialPost.findOne({
+      _id: req.params.id,
+      isApproved: true,
+      status: "approved",
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post nao encontrado." });
+    }
+
+    const repostedBy = ((post as any).repostedBy || []).map((id: any) => id.toString());
+    const hasReposted = repostedBy.includes(req.user.sub);
+
+    if (hasReposted) {
+      (post as any).repostedBy = ((post as any).repostedBy || []).filter(
+        (id: any) => id.toString() !== req.user?.sub
+      );
+    } else {
+      (post as any).repostedBy = [...((post as any).repostedBy || []), req.user.sub];
+    }
+
+    (post as any).repostCount = (post as any).repostedBy.length;
+    await post.save();
+
+    return res.json(post);
+  } catch (error) {
+    console.error("Erro ao repostar:", error);
+    return res.status(500).json({ message: "Erro ao repostar." });
+  }
+}
+
+export async function commentSocialPost(req: Request, res: Response) {
+  try {
+    if (!req.user?.sub) {
+      return res.status(401).json({ message: "Nao autorizado." });
+    }
+
+    const message = sanitizeMessage(req.body.message);
+
+    if (!message) {
+      return res.status(400).json({ message: "Escreva um comentario." });
+    }
+
+    const [post, user] = await Promise.all([
+      SocialPost.findOne({
+        _id: req.params.id,
+        isApproved: true,
+        status: "approved",
+      }),
+      User.findById(req.user.sub),
+    ]);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post nao encontrado." });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Usuario nao encontrado." });
+    }
+
+    (post as any).comments = [
+      ...((post as any).comments || []),
+      {
+        authorId: user._id,
+        authorName: user.name,
+        authorAvatarUrl: user.avatarUrl || null,
+        message,
+        createdAt: new Date(),
+      },
+    ];
+
+    await post.save();
+
+    return res.status(201).json(post);
+  } catch (error) {
+    console.error("Erro ao comentar:", error);
+    return res.status(500).json({ message: "Erro ao comentar." });
   }
 }
 

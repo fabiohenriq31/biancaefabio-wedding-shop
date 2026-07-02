@@ -65,6 +65,42 @@ export async function likeSocialPost(token: string, id: string) {
   return data as SocialPost;
 }
 
+export async function repostSocialPost(token: string, id: string) {
+  const response = await fetch(`${API_URL}/api/social-posts/${id}/repost`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Nao foi possivel repostar.');
+  }
+
+  return data as SocialPost;
+}
+
+export async function commentSocialPost(token: string, id: string, message: string) {
+  const response = await fetch(`${API_URL}/api/social-posts/${id}/comments`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Nao foi possivel comentar.');
+  }
+
+  return data as SocialPost;
+}
+
 export async function updateSocialPost(token: string, id: string, message: string) {
   const response = await fetch(`${API_URL}/api/social-posts/${id}`, {
     method: 'PATCH',

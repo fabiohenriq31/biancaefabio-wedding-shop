@@ -14,6 +14,18 @@ const socialPostSchema = new mongoose_1.default.Schema({
     thumbnailUrl: { type: String, default: null },
     publicId: { type: String, default: null },
     likeCount: { type: Number, default: 0 },
+    likedBy: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+    repostCount: { type: Number, default: 0 },
+    repostedBy: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+    comments: [
+        {
+            authorId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "User", required: true },
+            authorName: { type: String, required: true },
+            authorAvatarUrl: { type: String, default: null },
+            message: { type: String, required: true },
+            createdAt: { type: Date, default: Date.now },
+        },
+    ],
     isApproved: { type: Boolean, default: true },
     status: {
         type: String,

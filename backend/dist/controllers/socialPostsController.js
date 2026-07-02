@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPublicSocialPosts = getPublicSocialPosts;
 exports.createSocialPost = createSocialPost;
 exports.likeSocialPost = likeSocialPost;
+exports.repostSocialPost = repostSocialPost;
+exports.commentSocialPost = commentSocialPost;
 exports.updateSocialPost = updateSocialPost;
 exports.deleteOwnSocialPost = deleteOwnSocialPost;
 exports.getAdminSocialPosts = getAdminSocialPosts;
@@ -86,19 +88,103 @@ async function createSocialPost(req, res) {
 }
 async function likeSocialPost(req, res) {
     try {
-        const post = await SocialPost_1.SocialPost.findOneAndUpdate({
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Nao autorizado." });
+        }
+        const post = await SocialPost_1.SocialPost.findOne({
             _id: req.params.id,
             isApproved: true,
             status: "approved",
-        }, { $inc: { likeCount: 1 } }, { new: true });
+        });
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado." });
         }
+        const likedBy = (post.likedBy || []).map((id) => id.toString());
+        const hasLiked = likedBy.includes(req.user.sub);
+        if (hasLiked) {
+            post.likedBy = (post.likedBy || []).filter((id) => id.toString() !== req.user?.sub);
+        }
+        else {
+            post.likedBy = [...(post.likedBy || []), req.user.sub];
+        }
+        post.likeCount = post.likedBy.length;
+        await post.save();
         return res.json(post);
     }
     catch (error) {
         console.error("Erro ao curtir post:", error);
         return res.status(500).json({ message: "Erro ao curtir post." });
+    }
+}
+async function repostSocialPost(req, res) {
+    try {
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Nao autorizado." });
+        }
+        const post = await SocialPost_1.SocialPost.findOne({
+            _id: req.params.id,
+            isApproved: true,
+            status: "approved",
+        });
+        if (!post) {
+            return res.status(404).json({ message: "Post nao encontrado." });
+        }
+        const repostedBy = (post.repostedBy || []).map((id) => id.toString());
+        const hasReposted = repostedBy.includes(req.user.sub);
+        if (hasReposted) {
+            post.repostedBy = (post.repostedBy || []).filter((id) => id.toString() !== req.user?.sub);
+        }
+        else {
+            post.repostedBy = [...(post.repostedBy || []), req.user.sub];
+        }
+        post.repostCount = post.repostedBy.length;
+        await post.save();
+        return res.json(post);
+    }
+    catch (error) {
+        console.error("Erro ao repostar:", error);
+        return res.status(500).json({ message: "Erro ao repostar." });
+    }
+}
+async function commentSocialPost(req, res) {
+    try {
+        if (!req.user?.sub) {
+            return res.status(401).json({ message: "Nao autorizado." });
+        }
+        const message = sanitizeMessage(req.body.message);
+        if (!message) {
+            return res.status(400).json({ message: "Escreva um comentario." });
+        }
+        const [post, user] = await Promise.all([
+            SocialPost_1.SocialPost.findOne({
+                _id: req.params.id,
+                isApproved: true,
+                status: "approved",
+            }),
+            User_1.User.findById(req.user.sub),
+        ]);
+        if (!post) {
+            return res.status(404).json({ message: "Post nao encontrado." });
+        }
+        if (!user) {
+            return res.status(401).json({ message: "Usuario nao encontrado." });
+        }
+        post.comments = [
+            ...(post.comments || []),
+            {
+                authorId: user._id,
+                authorName: user.name,
+                authorAvatarUrl: user.avatarUrl || null,
+                message,
+                createdAt: new Date(),
+            },
+        ];
+        await post.save();
+        return res.status(201).json(post);
+    }
+    catch (error) {
+        console.error("Erro ao comentar:", error);
+        return res.status(500).json({ message: "Erro ao comentar." });
     }
 }
 async function updateSocialPost(req, res) {

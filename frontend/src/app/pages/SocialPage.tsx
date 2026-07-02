@@ -2,7 +2,7 @@ import { Camera, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Plus, Re
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import { createSocialPost, deleteSocialPost, getSocialPosts, likeSocialPost, updateSocialPost } from '../services/socialPostsApi';
+import { commentSocialPost, createSocialPost, deleteSocialPost, getSocialPosts, likeSocialPost, repostSocialPost, updateSocialPost } from '../services/socialPostsApi';
 import type { SocialPost } from '../types';
 
 function formatDate(value: string) {
@@ -36,6 +36,8 @@ export function SocialPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState('');
   const [showMobileComposer, setShowMobileComposer] = useState(false);
+  const [commentingId, setCommentingId] = useState<string | null>(null);
+  const [commentMessage, setCommentMessage] = useState('');
 
   async function loadPosts() {
     try {
@@ -83,6 +85,28 @@ export function SocialPage() {
       setPosts((current) => current.map((post) => (post._id === postId ? updated : post)));
     } catch {
       setError('Nao foi possivel curtir agora.');
+    }
+  }
+
+  async function handleRepost(postId: string) {
+    try {
+      if (!token) return;
+      const updated = await repostSocialPost(token, postId);
+      setPosts((current) => current.map((post) => (post._id === postId ? updated : post)));
+    } catch {
+      setError('Nao foi possivel repostar agora.');
+    }
+  }
+
+  async function handleComment(postId: string) {
+    try {
+      if (!token || !commentMessage.trim()) return;
+      const updated = await commentSocialPost(token, postId, commentMessage);
+      setPosts((current) => current.map((post) => (post._id === postId ? updated : post)));
+      setCommentingId(null);
+      setCommentMessage('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nao foi possivel comentar.');
     }
   }
 
@@ -164,6 +188,9 @@ export function SocialPage() {
           <div className="px-8 py-20 text-center text-[var(--wedding-text-light)]"><Camera className="mx-auto mb-3 h-8 w-8 text-[var(--wedding-gold)]" /><p className="text-lg text-[var(--wedding-text)]">Ainda nao tem posts por aqui.</p><p>Seja a primeira pessoa a movimentar o feed do casamento.</p></div>
         ) : posts.map((post) => {
           const isOwner = post.authorId === user?.id;
+          const userLiked = Boolean(user?.id && post.likedBy?.map(String).includes(user.id));
+          const userReposted = Boolean(user?.id && post.repostedBy?.map(String).includes(user.id));
+          const comments = post.comments || [];
           return (
             <article key={post._id} className="border-b border-[var(--wedding-beige)] px-4 py-3 transition hover:bg-[#fbf9f7] lg:px-5 lg:py-4">
               <div className="flex gap-3">
@@ -198,11 +225,41 @@ export function SocialPage() {
 
                   {post.imageUrl && <img src={post.imageUrl} alt={`Post de ${post.authorName}`} className="mt-3 max-h-[620px] w-full rounded-2xl border border-[var(--wedding-beige)] object-cover" loading="lazy" />}
                   <div className="mt-3 flex max-w-md items-center justify-between text-sm text-[var(--wedding-text-light)]">
-                    <button type="button" className="group inline-flex items-center gap-2 rounded-full transition hover:text-[var(--wedding-gold)]"><span className="rounded-full p-2 group-hover:bg-[var(--wedding-beige)]"><MessageCircle className="h-4 w-4" /></span>0</button>
-                    <button type="button" className="group inline-flex items-center gap-2 rounded-full transition hover:text-emerald-600"><span className="rounded-full p-2 group-hover:bg-emerald-50"><Repeat2 className="h-4 w-4" /></span>0</button>
-                    <button type="button" onClick={() => handleLike(post._id)} className="group inline-flex items-center gap-2 rounded-full transition hover:text-rose-600"><span className="rounded-full p-2 group-hover:bg-rose-50"><Heart className="h-4 w-4" /></span>{post.likeCount || 0}</button>
+                    <button type="button" onClick={() => setCommentingId((current) => current === post._id ? null : post._id)} className="group inline-flex items-center gap-2 rounded-full transition hover:text-[var(--wedding-gold)]"><span className="rounded-full p-2 group-hover:bg-[var(--wedding-beige)]"><MessageCircle className="h-4 w-4" /></span>{comments.length}</button>
+                    <button type="button" onClick={() => handleRepost(post._id)} className={`group inline-flex items-center gap-2 rounded-full transition hover:text-emerald-600 ${userReposted ? 'text-emerald-600' : ''}`}><span className="rounded-full p-2 group-hover:bg-emerald-50"><Repeat2 className="h-4 w-4" /></span>{post.repostCount || 0}</button>
+                    <button type="button" onClick={() => handleLike(post._id)} className={`group inline-flex items-center gap-2 rounded-full transition hover:text-rose-600 ${userLiked ? 'text-rose-600' : ''}`}><span className="rounded-full p-2 group-hover:bg-rose-50"><Heart className={`h-4 w-4 ${userLiked ? 'fill-current' : ''}`} /></span>{post.likeCount || 0}</button>
                     <button type="button" className="group inline-flex items-center gap-2 rounded-full transition hover:text-[var(--wedding-gold)]"><span className="rounded-full p-2 group-hover:bg-[var(--wedding-beige)]"><Share className="h-4 w-4" /></span></button>
                   </div>
+
+                  {commentingId === post._id && (
+                    <div className="mt-3 rounded-2xl border border-[var(--wedding-beige)] bg-[#fbf9f7] p-3">
+                      <textarea
+                        value={commentMessage}
+                        onChange={(event) => setCommentMessage(event.target.value)}
+                        className="min-h-20 w-full resize-none bg-transparent text-sm outline-none placeholder:text-[var(--wedding-text-light)]"
+                        placeholder="Escreva um comentario..."
+                        maxLength={280}
+                      />
+                      <div className="mt-2 flex justify-end gap-2">
+                        <button type="button" onClick={() => { setCommentingId(null); setCommentMessage(''); }} className="rounded-full px-4 py-2 text-sm text-[var(--wedding-text-light)]">Cancelar</button>
+                        <button type="button" onClick={() => handleComment(post._id)} disabled={!commentMessage.trim()} className="rounded-full bg-[var(--wedding-text)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Comentar</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {comments.length > 0 && (
+                    <div className="mt-3 space-y-3 border-t border-[var(--wedding-beige)] pt-3">
+                      {comments.slice(-3).map((comment, index) => (
+                        <div key={comment._id || `${comment.authorId}-${comment.createdAt}-${index}`} className="flex gap-2">
+                          <UserAvatar src={comment.authorAvatarUrl} name={comment.authorName} className="h-8 w-8" />
+                          <div className="rounded-2xl bg-[var(--wedding-beige)] px-3 py-2">
+                            <p className="text-xs font-semibold text-[var(--wedding-text)]">{comment.authorName}</p>
+                            <p className="text-sm text-[var(--wedding-text)]">{comment.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </article>

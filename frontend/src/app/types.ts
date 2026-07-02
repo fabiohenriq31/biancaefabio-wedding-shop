@@ -101,10 +101,23 @@ export interface SocialPost {
   thumbnailUrl?: string | null;
   publicId?: string | null;
   likeCount: number;
+  likedBy?: string[];
+  repostCount?: number;
+  repostedBy?: string[];
+  comments?: SocialPostComment[];
   isApproved: boolean;
   status: SocialPostStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SocialPostComment {
+  _id?: string;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl?: string | null;
+  message: string;
+  createdAt: string;
 }
 
 export interface Guest {
