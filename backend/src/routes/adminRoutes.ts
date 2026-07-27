@@ -20,6 +20,10 @@ import {
   updateGuest,
 } from "../controllers/guestController";
 import {
+  getAdminGuestCleanupSetting,
+  updateAdminGuestCleanupSetting,
+} from "../controllers/guestCleanupController";
+import {
   getAdminGuestPhotos,
   hideGuestPhoto,
   removeGuestPhoto,
@@ -60,6 +64,8 @@ router.patch("/guests/:id", updateGuest);
 router.patch("/guests/:id/confirm", confirmGuest);
 router.patch("/guests/:id/unconfirm", unconfirmGuest);
 router.delete("/guests/:id", deleteGuest);
+router.get("/guests/cleanup-settings", getAdminGuestCleanupSetting);
+router.put("/guests/cleanup-settings", updateAdminGuestCleanupSetting);
 router.get("/day-schedule", getAdminDaySchedule);
 router.post("/day-schedule", createAdminDayScheduleItem);
 router.patch("/day-schedule/:id", updateAdminDayScheduleItem);

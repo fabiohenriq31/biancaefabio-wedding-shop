@@ -135,6 +135,14 @@ export interface Guest {
   updatedAt: string;
 }
 
+export interface GuestCleanupSetting {
+  enabled: boolean;
+  executeAt?: string | null;
+  lastExecutedAt?: string | null;
+  lastDeletedCount: number;
+  updatedAt?: string;
+}
+
 export interface GuestLookupResult {
   _id: string;
   name: string;

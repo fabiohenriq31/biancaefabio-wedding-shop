@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { Guest } from "../model/Guest";
+import { applyScheduledGuestCleanup } from "../services/guestCleanup.service";
 
 function sanitizeText(value: unknown, maxLength = 500) {
   return String(value || "")
@@ -133,6 +134,7 @@ export async function createRsvp(req: Request, res: Response) {
 
 export async function getAdminGuests(req: Request, res: Response) {
   try {
+    await applyScheduledGuestCleanup();
     const status = String(req.query.status || "all");
     const filter = status === "confirmed"
       ? { status: "confirmed" }

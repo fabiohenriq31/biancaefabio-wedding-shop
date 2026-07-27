@@ -5,12 +5,14 @@ import {
   confirmGuest,
   createAdminGuest,
   deleteGuest,
+  getGuestCleanupSetting,
   getAdminGuests,
   unconfirmGuest,
   updateGuest,
+  updateGuestCleanupSetting,
   type GuestFilter,
 } from '../../services/adminGuestsApi';
-import type { Guest } from '../../types';
+import type { Guest, GuestCleanupSetting } from '../../types';
 
 const statusFilters: Array<{ label: string; value: GuestFilter }> = [
   { label: 'Todos', value: 'all' },
@@ -40,6 +42,12 @@ export function AdminGuestsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [cleanupSetting, setCleanupSetting] = useState<GuestCleanupSetting | null>(null);
+  const [cleanupForm, setCleanupForm] = useState({
+    enabled: false,
+    executeAt: '',
+  });
+  const [isSavingCleanup, setIsSavingCleanup] = useState(false);
   const [newGuest, setNewGuest] = useState({
     name: '',
     email: '',
@@ -66,7 +74,16 @@ export function AdminGuestsPage() {
     setLoading(true);
     setError('');
     try {
-      setGuests(await getAdminGuests(token, filter));
+      const [guestsResponse, cleanupResponse] = await Promise.all([
+        getAdminGuests(token, filter),
+        getGuestCleanupSetting(token),
+      ]);
+      setGuests(guestsResponse);
+      setCleanupSetting(cleanupResponse);
+      setCleanupForm({
+        enabled: cleanupResponse.enabled,
+        executeAt: cleanupResponse.executeAt ? new Date(cleanupResponse.executeAt).toISOString().slice(0, 16) : '',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar convidados');
     } finally {
@@ -172,6 +189,33 @@ export function AdminGuestsPage() {
     }
   }
 
+  async function handleCleanupSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!token) return;
+
+    try {
+      setIsSavingCleanup(true);
+      const updated = await updateGuestCleanupSetting(token, {
+        enabled: cleanupForm.enabled,
+        executeAt: cleanupForm.enabled && cleanupForm.executeAt ? new Date(cleanupForm.executeAt).toISOString() : null,
+      });
+      setCleanupSetting(updated);
+      setCleanupForm({
+        enabled: updated.enabled,
+        executeAt: updated.executeAt ? new Date(updated.executeAt).toISOString().slice(0, 16) : '',
+      });
+      alert(updated.enabled ? 'Exclusao automatica configurada com sucesso.' : 'Exclusao automatica desativada.');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao salvar exclusao automatica');
+    } finally {
+      setIsSavingCleanup(false);
+    }
+  }
+
+  const cleanupLastRun = cleanupSetting?.lastExecutedAt
+    ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(cleanupSetting.lastExecutedAt))
+    : '';
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
@@ -249,6 +293,59 @@ export function AdminGuestsPage() {
           </div>
         </form>
       )}
+
+      <form onSubmit={handleCleanupSubmit} className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+        <div className="mb-5">
+          <h2 className="text-2xl text-[var(--wedding-text)]">Exclusao automatica dos nao confirmados</h2>
+          <p className="text-sm text-[var(--wedding-text-light)]">
+            Agende uma data para remover automaticamente apenas os convidados com status nao confirmado. Confirmados nao entram nessa exclusao.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[220px_minmax(0,1fr)] md:items-end">
+          <label className="flex items-center gap-3 rounded-lg bg-[var(--wedding-beige)] px-4 py-3">
+            <input
+              type="checkbox"
+              checked={cleanupForm.enabled}
+              onChange={(event) => setCleanupForm((current) => ({ ...current, enabled: event.target.checked }))}
+              className="h-4 w-4"
+            />
+            <span className="text-sm text-[var(--wedding-text)]">Ativar rotina</span>
+          </label>
+
+          <div>
+            <label className="mb-2 block text-sm text-[var(--wedding-text)]">Data e horario da exclusao</label>
+            <input
+              type="datetime-local"
+              value={cleanupForm.executeAt}
+              onChange={(event) => setCleanupForm((current) => ({ ...current, executeAt: event.target.value }))}
+              className="w-full rounded-lg bg-[var(--wedding-beige)] px-4 py-3 outline-none disabled:opacity-60"
+              disabled={!cleanupForm.enabled}
+              required={cleanupForm.enabled}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm text-[var(--wedding-text-light)]">
+          <p>Seguranca: a rotina exclui somente convidados com status <strong>nao confirmado</strong>.</p>
+          {cleanupSetting?.enabled && cleanupSetting.executeAt && (
+            <p>
+              Agendado para {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(cleanupSetting.executeAt))}.
+            </p>
+          )}
+          {cleanupLastRun && (
+            <p>
+              Ultima execucao em {cleanupLastRun}, removendo {cleanupSetting?.lastDeletedCount || 0} nao confirmados.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-6">
+          <button type="submit" disabled={isSavingCleanup} className="rounded-lg bg-[var(--wedding-text)] px-5 py-3 text-sm text-white disabled:opacity-60">
+            {isSavingCleanup ? 'Salvando...' : 'Salvar exclusao automatica'}
+          </button>
+        </div>
+      </form>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-7">
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Neste filtro</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.total}</p></div>

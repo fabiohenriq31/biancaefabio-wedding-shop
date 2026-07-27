@@ -12,6 +12,7 @@ import socialRoutes from "./routes/socialRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import guestRoutes from "./routes/guestRoutes";
 import tieRaffleRoutes from "./routes/tieRaffleRoutes";
+import { applyScheduledGuestCleanup } from "./services/guestCleanup.service";
 
 dotenv.config();
 
@@ -100,6 +101,16 @@ app.use(
 const port = Number(process.env.PORT) || 3001;
 
 connectDatabase().then(() => {
+  applyScheduledGuestCleanup().catch((error) => {
+    console.error("Erro ao aplicar exclusao automatica de convidados na inicializacao:", error);
+  });
+
+  setInterval(() => {
+    applyScheduledGuestCleanup().catch((error) => {
+      console.error("Erro ao aplicar exclusao automatica de convidados:", error);
+    });
+  }, 60 * 1000);
+
   app.listen(port, "0.0.0.0", () => {
     console.log(`API rodando na porta ${port}`);
   });

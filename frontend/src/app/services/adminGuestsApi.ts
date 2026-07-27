@@ -1,4 +1,4 @@
-import type { Guest } from '../types';
+import type { Guest, GuestCleanupSetting } from '../types';
 import { adminRequest } from './adminApi';
 
 export type GuestFilter = 'all' | 'confirmed' | 'not_confirmed';
@@ -56,5 +56,19 @@ export function updateGuest(token: string, id: string, payload: UpdateGuestPaylo
 export function deleteGuest(token: string, id: string) {
   return adminRequest<void>(token, `/api/admin/guests/${id}`, {
     method: 'DELETE',
+  });
+}
+
+export function getGuestCleanupSetting(token: string) {
+  return adminRequest<GuestCleanupSetting>(token, '/api/admin/guests/cleanup-settings');
+}
+
+export function updateGuestCleanupSetting(token: string, payload: { enabled: boolean; executeAt?: string | null }) {
+  return adminRequest<GuestCleanupSetting>(token, '/api/admin/guests/cleanup-settings', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   });
 }

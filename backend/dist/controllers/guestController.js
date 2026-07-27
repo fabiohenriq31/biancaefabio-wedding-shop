@@ -9,6 +9,7 @@ exports.updateGuest = updateGuest;
 exports.unconfirmGuest = unconfirmGuest;
 exports.deleteGuest = deleteGuest;
 const Guest_1 = require("../model/Guest");
+const guestCleanup_service_1 = require("../services/guestCleanup.service");
 function sanitizeText(value, maxLength = 500) {
     return String(value || "")
         .replace(/[<>]/g, "")
@@ -115,6 +116,7 @@ async function createRsvp(req, res) {
 }
 async function getAdminGuests(req, res) {
     try {
+        await (0, guestCleanup_service_1.applyScheduledGuestCleanup)();
         const status = String(req.query.status || "all");
         const filter = status === "confirmed"
             ? { status: "confirmed" }

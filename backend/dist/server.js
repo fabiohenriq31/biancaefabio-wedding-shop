@@ -17,6 +17,7 @@ const socialRoutes_1 = __importDefault(require("./routes/socialRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const guestRoutes_1 = __importDefault(require("./routes/guestRoutes"));
 const tieRaffleRoutes_1 = __importDefault(require("./routes/tieRaffleRoutes"));
+const guestCleanup_service_1 = require("./services/guestCleanup.service");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const defaultAllowedOrigins = [
@@ -79,6 +80,14 @@ app.use((error, _req, res, _next) => {
 });
 const port = Number(process.env.PORT) || 3001;
 (0, db_1.connectDatabase)().then(() => {
+    (0, guestCleanup_service_1.applyScheduledGuestCleanup)().catch((error) => {
+        console.error("Erro ao aplicar exclusao automatica de convidados na inicializacao:", error);
+    });
+    setInterval(() => {
+        (0, guestCleanup_service_1.applyScheduledGuestCleanup)().catch((error) => {
+            console.error("Erro ao aplicar exclusao automatica de convidados:", error);
+        });
+    }, 60 * 1000);
     app.listen(port, "0.0.0.0", () => {
         console.log(`API rodando na porta ${port}`);
     });
