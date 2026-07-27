@@ -104,6 +104,8 @@ export function AdminGuestsPage() {
     notConfirmed: visibleGuests.filter((guest) => guest.status === 'not_confirmed').length,
     children: visibleGuests.filter((guest) => guest.isChild).length,
     paying: visibleGuests.filter((guest) => !guest.isChild).length,
+    confirmedPaying: visibleGuests.filter((guest) => !guest.isChild && guest.status === 'confirmed').length,
+    notConfirmedPaying: visibleGuests.filter((guest) => !guest.isChild && guest.status === 'not_confirmed').length,
   }), [visibleGuests]);
 
   async function runAction(action: () => Promise<unknown>) {
@@ -248,12 +250,14 @@ export function AdminGuestsPage() {
         </form>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-7">
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Neste filtro</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.total}</p></div>
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Confirmados</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.confirmed}</p></div>
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Nao confirmados</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.notConfirmed}</p></div>
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Criancas</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.children}</p></div>
-        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Pagantes</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.paying}</p></div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Pagantes totais</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.paying}</p></div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Pagantes confirmados</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.confirmedPaying}</p></div>
+        <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5"><p className="text-sm text-[var(--wedding-text-light)]">Pagantes nao confirmados</p><p className="mt-2 text-2xl text-[var(--wedding-text)]">{counters.notConfirmedPaying}</p></div>
       </div>
 
       <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">

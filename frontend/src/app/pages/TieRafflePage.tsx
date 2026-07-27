@@ -1,4 +1,4 @@
-import { Crown, Gift, Sparkles, Trophy, Wallet } from 'lucide-react';
+import { Crown, Gift, Sparkles, Trophy } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -179,16 +179,7 @@ export function TieRafflePage() {
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card>
-            <div className="flex items-center gap-3">
-              <Wallet className="h-5 w-5 text-[var(--wedding-gold)]" />
-              <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Total arrecadado</p>
-                <p className="mt-1 text-3xl text-[var(--wedding-text)]">{money(data?.totalAmount || 0)}</p>
-              </div>
-            </div>
-          </Card>
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card>
             <div className="flex items-center gap-3">
               <Crown className="h-5 w-5 text-[var(--wedding-gold)]" />
