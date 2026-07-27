@@ -1,4 +1,4 @@
-import { ArrowDownAZ, ArrowUpAZ, CheckCircle2, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, CheckCircle2, MessageCircle, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -28,6 +28,21 @@ const guestTypeFilters: Array<{ label: string; value: GuestTypeFilter }> = [
   { label: 'Padrinhos/Madrinhas', value: 'groomsman' },
   { label: 'Convidados', value: 'guest' },
 ];
+
+const RSVP_DEADLINE_MESSAGE = 'Tudo bem? Aqui é a Lunara, cerimonialista do casamento da Bianca e do Fábio. Estou passando para te lembrar com carinho que o prazo para confirmar sua presença vai até 29 de julho de 2026. Se você puder confirmar até essa data, vai nos ajudar muito no fechamento da lista final com os fornecedores. Caso a confirmação não seja feita até lá, seu nome será retirado da lista, tudo bem?';
+
+function getWhatsAppLink(name: string, phone?: string) {
+  const digits = String(phone || '').replace(/\D/g, '');
+
+  if (!digits) {
+    return '';
+  }
+
+  const normalizedPhone = digits.startsWith('55') ? digits : `55${digits}`;
+  const message = `Oi, ${name}! ${RSVP_DEADLINE_MESSAGE}`;
+
+  return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+}
 
 export function AdminGuestsPage() {
   const { token } = useAuth();
@@ -74,16 +89,24 @@ export function AdminGuestsPage() {
     setLoading(true);
     setError('');
     try {
-      const [guestsResponse, cleanupResponse] = await Promise.all([
-        getAdminGuests(token, filter),
-        getGuestCleanupSetting(token),
-      ]);
+      const guestsResponse = await getAdminGuests(token, filter);
       setGuests(guestsResponse);
-      setCleanupSetting(cleanupResponse);
-      setCleanupForm({
-        enabled: cleanupResponse.enabled,
-        executeAt: cleanupResponse.executeAt ? new Date(cleanupResponse.executeAt).toISOString().slice(0, 16) : '',
-      });
+
+      try {
+        const cleanupResponse = await getGuestCleanupSetting(token);
+        setCleanupSetting(cleanupResponse);
+        setCleanupForm({
+          enabled: cleanupResponse.enabled,
+          executeAt: cleanupResponse.executeAt ? new Date(cleanupResponse.executeAt).toISOString().slice(0, 16) : '',
+        });
+      } catch (cleanupError) {
+        console.error(cleanupError);
+        setCleanupSetting(null);
+        setCleanupForm({
+          enabled: false,
+          executeAt: '',
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar convidados');
     } finally {
@@ -328,6 +351,11 @@ export function AdminGuestsPage() {
 
         <div className="mt-4 space-y-2 text-sm text-[var(--wedding-text-light)]">
           <p>Seguranca: a rotina exclui somente convidados com status <strong>nao confirmado</strong>.</p>
+          {!cleanupSetting && (
+            <p className="text-amber-700">
+              A configuracao automatica ainda nao respondeu no backend. A lista de convidados continua carregando normalmente.
+            </p>
+          )}
           {cleanupSetting?.enabled && cleanupSetting.executeAt && (
             <p>
               Agendado para {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(cleanupSetting.executeAt))}.
@@ -374,6 +402,7 @@ export function AdminGuestsPage() {
           const isConfirmed = guest.status === 'confirmed';
           const isEditing = editingGuestId === guest._id;
           const date = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(guest.createdAt));
+          const whatsappLink = !isConfirmed ? getWhatsAppLink(guest.name, guest.phone) : '';
 
           return (
             <article key={guest._id} className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
@@ -417,6 +446,18 @@ export function AdminGuestsPage() {
                     {guest.message && <p className="rounded-lg bg-[var(--wedding-beige)] p-3 text-sm italic text-[var(--wedding-text)]">"{guest.message}"</p>}
                   </div>
                   <div className="flex min-w-fit flex-wrap items-center gap-2">
+                    {!isConfirmed && whatsappLink && (
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-100 text-emerald-700"
+                        aria-label={`Avisar ${guest.name} no WhatsApp`}
+                        title="Cobrar confirmacao no WhatsApp"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </a>
+                    )}
                     {isConfirmed ? (
                       <button type="button" onClick={() => token && runAction(() => unconfirmGuest(token, guest._id))} className="flex items-center gap-2 rounded-lg bg-[var(--wedding-beige)] px-4 py-2 text-sm text-[var(--wedding-text)]"><XCircle className="h-4 w-4" />Marcar nao confirmado</button>
                     ) : (
