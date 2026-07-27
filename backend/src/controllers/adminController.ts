@@ -6,6 +6,8 @@ import { Product } from "../model/Product";
 import { Supplier } from "../model/Supplier";
 import { FinancialEntry } from "../model/FinancialEntry";
 import { SocialPost } from "../model/SocialPost";
+import { TieRaffleEntry } from "../model/TieRaffleEntry";
+import { TieRaffleState } from "../model/TieRaffleState";
 
 function getSupplierTotals(suppliers: any[]) {
   return suppliers.reduce(
@@ -47,6 +49,8 @@ export async function getAdminSummary(_req: Request, res: Response) {
       latestSocialPosts,
       latestOrders,
       latestGuests,
+      tieRaffleEntries,
+      tieRaffleState,
     ] = await Promise.all([
       Product.countDocuments({ isActive: true }),
       Order.countDocuments(),
@@ -68,7 +72,22 @@ export async function getAdminSummary(_req: Request, res: Response) {
       SocialPost.find().sort({ createdAt: -1 }).limit(6),
       Order.find().sort({ createdAt: -1 }).limit(6),
       Guest.find().sort({ createdAt: -1 }).limit(6),
+      TieRaffleEntry.find().sort({ createdAt: -1 }),
+      TieRaffleState.findOne().sort({ updatedAt: -1 }),
     ]);
+    const tieRaffleSummary = tieRaffleEntries.reduce(
+      (acc, entry) => {
+        acc.totalAmount += Number(entry.amount || 0);
+        const key = entry.userId ? `user:${String(entry.userId)}` : `name:${String(entry.fullName || "").toLowerCase()}`;
+        acc.participants.add(key);
+        return acc;
+      },
+      {
+        totalAmount: 0,
+        participants: new Set<string>(),
+      }
+    );
+
     const supplierTotals = getSupplierTotals(suppliers);
     const totalReserved = financeEntries.reduce(
       (sum, entry) => sum + Number(entry.amount || 0),
@@ -114,6 +133,10 @@ export async function getAdminSummary(_req: Request, res: Response) {
       latestSocialPosts,
       latestOrders,
       latestGuests,
+      tieRaffleEntryCount: tieRaffleEntries.length,
+      tieRaffleParticipantCount: tieRaffleSummary.participants.size,
+      tieRaffleTotalAmount: Math.round(tieRaffleSummary.totalAmount * 100) / 100,
+      tieRaffleWinnerName: tieRaffleState?.winnerName || "",
     });
   } catch (error) {
     console.error("Erro ao buscar resumo administrativo:", error);

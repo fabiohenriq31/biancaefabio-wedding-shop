@@ -8,6 +8,8 @@ const Product_1 = require("../model/Product");
 const Supplier_1 = require("../model/Supplier");
 const FinancialEntry_1 = require("../model/FinancialEntry");
 const SocialPost_1 = require("../model/SocialPost");
+const TieRaffleEntry_1 = require("../model/TieRaffleEntry");
+const TieRaffleState_1 = require("../model/TieRaffleState");
 function getSupplierTotals(suppliers) {
     return suppliers.reduce((totals, supplier) => {
         const paid = (supplier.payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
@@ -21,7 +23,7 @@ function getSupplierTotals(suppliers) {
 }
 async function getAdminSummary(_req, res) {
     try {
-        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, groomsmenGuests, regularGuests, childGuests, payingGuests, totalSocialPosts, hiddenSocialPosts, suppliers, financeEntries, latestPhotos, latestSocialPosts, latestOrders, latestGuests,] = await Promise.all([
+        const [activeProducts, totalOrders, totalPhotos, hiddenPhotos, totalGuests, confirmedGuests, groomsmenGuests, regularGuests, childGuests, payingGuests, totalSocialPosts, hiddenSocialPosts, suppliers, financeEntries, latestPhotos, latestSocialPosts, latestOrders, latestGuests, tieRaffleEntries, tieRaffleState,] = await Promise.all([
             Product_1.Product.countDocuments({ isActive: true }),
             Order_1.Order.countDocuments(),
             GuestPhoto_1.GuestPhoto.countDocuments(),
@@ -42,7 +44,18 @@ async function getAdminSummary(_req, res) {
             SocialPost_1.SocialPost.find().sort({ createdAt: -1 }).limit(6),
             Order_1.Order.find().sort({ createdAt: -1 }).limit(6),
             Guest_1.Guest.find().sort({ createdAt: -1 }).limit(6),
+            TieRaffleEntry_1.TieRaffleEntry.find().sort({ createdAt: -1 }),
+            TieRaffleState_1.TieRaffleState.findOne().sort({ updatedAt: -1 }),
         ]);
+        const tieRaffleSummary = tieRaffleEntries.reduce((acc, entry) => {
+            acc.totalAmount += Number(entry.amount || 0);
+            const key = entry.userId ? `user:${String(entry.userId)}` : `name:${String(entry.fullName || "").toLowerCase()}`;
+            acc.participants.add(key);
+            return acc;
+        }, {
+            totalAmount: 0,
+            participants: new Set(),
+        });
         const supplierTotals = getSupplierTotals(suppliers);
         const totalReserved = financeEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
         const confirmedPayingGuests = await Guest_1.Guest.countDocuments({
@@ -81,6 +94,10 @@ async function getAdminSummary(_req, res) {
             latestSocialPosts,
             latestOrders,
             latestGuests,
+            tieRaffleEntryCount: tieRaffleEntries.length,
+            tieRaffleParticipantCount: tieRaffleSummary.participants.size,
+            tieRaffleTotalAmount: Math.round(tieRaffleSummary.totalAmount * 100) / 100,
+            tieRaffleWinnerName: tieRaffleState?.winnerName || "",
         });
     }
     catch (error) {

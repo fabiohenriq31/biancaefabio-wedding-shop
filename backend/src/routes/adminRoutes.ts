@@ -38,6 +38,14 @@ import {
   removeSocialPost,
   showSocialPost,
 } from "../controllers/socialPostsController";
+import {
+  createTieRaffleEntry,
+  deleteTieRaffleEntry,
+  drawTieRaffleWinner,
+  getAdminTieRaffle,
+  resetTieRaffleWinner,
+  searchTieRaffleUsers,
+} from "../controllers/tieRaffleController";
 import { requireAdmin } from "../middleware/adminMiddleware";
 import { requireAuth } from "../middleware/authMiddleware";
 
@@ -64,6 +72,12 @@ router.delete("/suppliers/:id", removeSupplier);
 router.get("/finance", getAdminFinanceEntries);
 router.post("/finance", createAdminFinanceEntry);
 router.delete("/finance/:id", deleteAdminFinanceEntry);
+router.get("/tie-raffle", getAdminTieRaffle);
+router.get("/tie-raffle/users/search", searchTieRaffleUsers);
+router.post("/tie-raffle/entries", createTieRaffleEntry);
+router.delete("/tie-raffle/entries/:id", deleteTieRaffleEntry);
+router.post("/tie-raffle/draw", drawTieRaffleWinner);
+router.post("/tie-raffle/reset", resetTieRaffleWinner);
 router.get("/guest-photos", getAdminGuestPhotos);
 router.patch("/guest-photos/:id/hide", hideGuestPhoto);
 router.patch("/guest-photos/:id/show", showGuestPhoto);

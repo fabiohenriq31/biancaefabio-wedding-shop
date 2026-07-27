@@ -43,6 +43,12 @@ export function Header() {
             >
               B&F Social
             </Link>
+            <Link
+              to="/shopping/gravata"
+              className="text-[var(--wedding-text-light)] hover:text-[var(--wedding-text)] transition-colors"
+            >
+              Hora da gravata
+            </Link>
             <a
               href="https://biancaefabio.com.br"
               className="text-[var(--wedding-text-light)] hover:text-[var(--wedding-text)] transition-colors"

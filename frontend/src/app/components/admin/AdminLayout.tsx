@@ -1,4 +1,4 @@
-import { CalendarDays, Camera, ClipboardList, Gift, HandCoins, LayoutDashboard, MessageSquareText, Package, PiggyBank, Users } from 'lucide-react';
+import { CalendarDays, Camera, ClipboardList, Gift, HandCoins, LayoutDashboard, MessageSquareText, Package, PiggyBank, Trophy, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/convidados', label: 'Lista de convidados', icon: Users },
   { to: '/admin/organizacao-do-dia', label: 'Organizacao do dia', icon: CalendarDays },
   { to: '/admin/financeiro', label: 'Financeiro', icon: PiggyBank },
+  { to: '/admin/gravata', label: 'Hora da gravata', icon: Trophy },
   { to: '/admin/fornecedores', label: 'Fornecedores', icon: HandCoins },
   { to: '/admin/fotos', label: 'Fotos dos convidados', icon: Camera },
   { to: '/admin/social', label: 'B&F Social', icon: MessageSquareText },

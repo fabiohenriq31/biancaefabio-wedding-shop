@@ -11,6 +11,7 @@ import socialPostsRoutes from "./routes/socialPostsRoutes";
 import socialRoutes from "./routes/socialRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import guestRoutes from "./routes/guestRoutes";
+import tieRaffleRoutes from "./routes/tieRaffleRoutes";
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use("/guest-photos", guestPhotosRoutes);
 app.use("/social-posts", socialPostsRoutes);
 app.use("/social", socialRoutes);
 app.use("/rsvp", guestRoutes);
+app.use("/tie-raffle", tieRaffleRoutes);
 app.use("/admin", adminRoutes);
 
 app.use("/api/products", productRoutes);
@@ -63,6 +65,7 @@ app.use("/api/guest-photos", guestPhotosRoutes);
 app.use("/api/social-posts", socialPostsRoutes);
 app.use("/api/social", socialRoutes);
 app.use("/api/rsvp", guestRoutes);
+app.use("/api/tie-raffle", tieRaffleRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use("/auth", authRoutes);

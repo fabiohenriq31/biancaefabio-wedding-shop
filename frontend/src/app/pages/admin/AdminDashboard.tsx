@@ -2,6 +2,7 @@ import {
   Baby,
   Camera,
   CheckCircle2,
+  Crown,
   EyeOff,
   HandCoins,
   MessageSquareText,
@@ -9,6 +10,7 @@ import {
   PiggyBank,
   ShoppingBag,
   Ticket,
+  Trophy,
   Users,
   Wallet,
   XCircle,
@@ -88,9 +90,11 @@ export function AdminDashboard() {
             <StatCard label="Pagantes confirmados" value={summary.confirmedPayingGuests} icon={Ticket} />
             <StatCard label="Padrinhos/Madrinhas" value={summary.groomsmenGuests} icon={Users} />
             <StatCard label="Fornecedores" value={summary.totalSuppliers} icon={HandCoins} />
+            <StatCard label="Lancamentos da gravata" value={summary.tieRaffleEntryCount} icon={Trophy} />
+            <StatCard label="Participantes da gravata" value={summary.tieRaffleParticipantCount} icon={Crown} />
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-6">
             <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
               <PiggyBank className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
               <p className="text-sm text-[var(--wedding-text-light)]">Dinheiro guardado</p>
@@ -121,6 +125,16 @@ export function AdminDashboard() {
               <p className="text-sm text-[var(--wedding-text-light)]">Saldo pendente</p>
               <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
                 {money(summary.supplierTotalPending)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
+              <Trophy className="mb-4 h-5 w-5 text-[var(--wedding-gold)]" />
+              <p className="text-sm text-[var(--wedding-text-light)]">Arrecadado na gravata</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--wedding-text)]">
+                {money(summary.tieRaffleTotalAmount)}
+              </p>
+              <p className="mt-2 text-sm text-[var(--wedding-text-light)]">
+                {summary.tieRaffleWinnerName || 'Nenhum ganhador sorteado ainda'}
               </p>
             </div>
           </div>

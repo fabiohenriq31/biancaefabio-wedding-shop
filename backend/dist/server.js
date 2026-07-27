@@ -16,6 +16,7 @@ const socialPostsRoutes_1 = __importDefault(require("./routes/socialPostsRoutes"
 const socialRoutes_1 = __importDefault(require("./routes/socialRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const guestRoutes_1 = __importDefault(require("./routes/guestRoutes"));
+const tieRaffleRoutes_1 = __importDefault(require("./routes/tieRaffleRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const defaultAllowedOrigins = [
@@ -51,12 +52,14 @@ app.use("/guest-photos", guestPhotosRoutes_1.default);
 app.use("/social-posts", socialPostsRoutes_1.default);
 app.use("/social", socialRoutes_1.default);
 app.use("/rsvp", guestRoutes_1.default);
+app.use("/tie-raffle", tieRaffleRoutes_1.default);
 app.use("/admin", adminRoutes_1.default);
 app.use("/api/products", productRoutes_1.default);
 app.use("/api/guest-photos", guestPhotosRoutes_1.default);
 app.use("/api/social-posts", socialPostsRoutes_1.default);
 app.use("/api/social", socialRoutes_1.default);
 app.use("/api/rsvp", guestRoutes_1.default);
+app.use("/api/tie-raffle", tieRaffleRoutes_1.default);
 app.use("/api/admin", adminRoutes_1.default);
 app.use("/auth", authRoutes_1.default);
 app.use("/api/auth", authRoutes_1.default);

@@ -166,6 +166,10 @@ export interface AdminSummary {
   supplierTotalCost: number;
   supplierTotalPaid: number;
   supplierTotalPending: number;
+  tieRaffleEntryCount: number;
+  tieRaffleParticipantCount: number;
+  tieRaffleTotalAmount: number;
+  tieRaffleWinnerName: string;
   latestFinancialEntries: FinancialEntry[];
   latestSocialPosts: SocialPost[];
   latestSuppliers: Supplier[];
@@ -213,4 +217,62 @@ export interface DayScheduleItem {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TieRaffleEntry {
+  _id: string;
+  fullName: string;
+  email?: string;
+  amount: number;
+  note?: string;
+  userId?: string | null;
+  createdByAdminId?: string;
+  createdByAdminName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TieRaffleParticipant {
+  key: string;
+  fullName: string;
+  email?: string;
+  totalAmount: number;
+  entriesCount: number;
+  userId?: string | null;
+  chancePercent: number;
+}
+
+export interface TieRaffleWinner {
+  name: string;
+  email?: string;
+  totalAmount: number;
+  drawnAt: string;
+  drawToken: string;
+}
+
+export interface TieRaffleAdminData {
+  entries: TieRaffleEntry[];
+  summary: {
+    totalAmount: number;
+    totalEntries: number;
+    participantCount: number;
+    participants: TieRaffleParticipant[];
+  };
+  winner: TieRaffleWinner | null;
+}
+
+export interface TieRafflePublicData {
+  totalAmount: number;
+  totalEntries: number;
+  participantCount: number;
+  topParticipants: TieRaffleParticipant[];
+  recentEntries: Array<Pick<TieRaffleEntry, '_id' | 'fullName' | 'amount' | 'createdAt'>>;
+  winner: TieRaffleWinner | null;
+  updatedAt?: string | null;
+}
+
+export interface TieRaffleUserLookup {
+  id: string;
+  name: string;
+  email: string;
 }

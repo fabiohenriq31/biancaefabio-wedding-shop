@@ -1,0 +1,241 @@
+import { Crown, Gift, Sparkles, Trophy, Wallet } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { getTieRaffleStatus } from '../services/tieRaffleApi';
+import type { TieRafflePublicData } from '../types';
+
+function money(value: number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value || 0);
+}
+
+function formatDate(value?: string) {
+  if (!value) return '';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+export function TieRafflePage() {
+  const [data, setData] = useState<TieRafflePublicData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const seenDrawToken = useRef<string>('');
+
+  async function loadData(showLoader = true) {
+    if (showLoader) {
+      setLoading(true);
+    }
+
+    try {
+      const response = await getTieRaffleStatus();
+      setData(response);
+      setError('');
+
+      const currentToken = response.winner?.drawToken || '';
+      if (currentToken && currentToken !== seenDrawToken.current) {
+        seenDrawToken.current = currentToken;
+        setShowCelebration(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar a hora da gravata');
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      loadData(false);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!showCelebration) return;
+
+    const timeout = window.setTimeout(() => {
+      setShowCelebration(false);
+    }, 12000);
+
+    return () => window.clearTimeout(timeout);
+  }, [showCelebration]);
+
+  return (
+    <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)] py-12">
+      {showCelebration && data?.winner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(38,31,28,0.78)] px-6">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-8 text-center shadow-2xl">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--wedding-beige)] text-[var(--wedding-gold)]">
+              <Trophy className="h-10 w-10" />
+            </div>
+            <p className="mt-6 text-sm uppercase tracking-[0.3em] text-[var(--wedding-gold)]">Temos um vencedor</p>
+            <h2 className="mt-4 text-5xl text-[var(--wedding-text)]">{data.winner.name}</h2>
+            <p className="mt-4 text-lg text-[var(--wedding-text-light)]">
+              Entrou no sorteio com {money(data.winner.totalAmount)} em contribuicoes.
+            </p>
+            <div className="mt-8 flex justify-center gap-4 text-[var(--wedding-gold)]">
+              <Sparkles className="h-6 w-6 animate-pulse" />
+              <Crown className="h-6 w-6 animate-bounce" />
+              <Sparkles className="h-6 w-6 animate-pulse" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCelebration(false)}
+              className="mt-8 rounded-lg bg-[var(--wedding-text)] px-6 py-3 text-sm text-white"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <section className="rounded-[24px] bg-white px-6 py-10 shadow-sm md:px-10">
+          <p className="text-sm uppercase tracking-[0.28em] text-[var(--wedding-gold)]">Ao vivo</p>
+          <h1 className="mt-4 text-5xl text-[var(--wedding-text)]">Hora da gravata</h1>
+          <p className="mt-4 max-w-3xl text-lg text-[var(--wedding-text-light)]">
+            Cada contribuicao aumenta as chances no sorteio. Assim que os noivos revelarem o vencedor, essa pagina se atualiza sozinha e mostra a celebracao.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Button onClick={() => window.location.assign('/shopping/login')}>
+              <Gift className="h-5 w-5" />
+              Entrar no shopping
+            </Button>
+            <Button variant="outline" onClick={() => loadData(false)}>
+              Atualizar agora
+            </Button>
+          </div>
+        </section>
+
+        {error && (
+          <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Card>
+            <div className="flex items-center gap-3">
+              <Wallet className="h-5 w-5 text-[var(--wedding-gold)]" />
+              <div>
+                <p className="text-sm text-[var(--wedding-text-light)]">Total arrecadado</p>
+                <p className="mt-1 text-3xl text-[var(--wedding-text)]">{money(data?.totalAmount || 0)}</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <Crown className="h-5 w-5 text-[var(--wedding-gold)]" />
+              <div>
+                <p className="text-sm text-[var(--wedding-text-light)]">Participantes</p>
+                <p className="mt-1 text-3xl text-[var(--wedding-text)]">{data?.participantCount || 0}</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-[var(--wedding-gold)]" />
+              <div>
+                <p className="text-sm text-[var(--wedding-text-light)]">Ultima atualizacao</p>
+                <p className="mt-1 text-lg text-[var(--wedding-text)]">{formatDate(data?.updatedAt || '') || 'Aguardando'}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card className="overflow-hidden" padding="none">
+            <div className="border-b border-[var(--wedding-beige)] px-6 py-6">
+              <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Resultado</p>
+              <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Painel do sorteio</h2>
+            </div>
+
+            <div className="px-6 py-8">
+              {loading ? (
+                <p className="text-[var(--wedding-text-light)]">Carregando sorteio...</p>
+              ) : data?.winner ? (
+                <div className="rounded-2xl bg-[var(--wedding-offwhite)] p-8 text-center">
+                  <p className="text-sm uppercase tracking-[0.25em] text-[var(--wedding-gold)]">Ganhador revelado</p>
+                  <h3 className="mt-4 text-4xl text-[var(--wedding-text)]">{data.winner.name}</h3>
+                  <p className="mt-3 text-lg text-[var(--wedding-text-light)]">
+                    Participou com {money(data.winner.totalAmount)}
+                  </p>
+                  <p className="mt-4 text-sm text-[var(--wedding-text-light)]">{formatDate(data.winner.drawnAt)}</p>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[var(--wedding-beige)] p-8 text-center">
+                  <p className="text-[var(--wedding-text-light)]">
+                    O sorteio ainda nao aconteceu. Deixe essa pagina aberta para acompanhar sem precisar atualizar.
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <Card>
+            <div className="mb-5">
+              <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Ranking</p>
+              <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Maiores chances agora</h2>
+            </div>
+
+            {!data || data.topParticipants.length === 0 ? (
+              <p className="text-[var(--wedding-text-light)]">Nenhuma participacao registrada ainda.</p>
+            ) : (
+              <div className="space-y-4">
+                {data.topParticipants.slice(0, 6).map((participant, index) => (
+                  <div key={participant.key} className="rounded-lg border border-[var(--wedding-beige)] p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-[var(--wedding-text-light)]">#{index + 1}</p>
+                        <p className="text-lg text-[var(--wedding-text)]">{participant.fullName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg text-[var(--wedding-text)]">{money(participant.totalAmount)}</p>
+                        <p className="text-sm text-[var(--wedding-gold)]">{participant.chancePercent.toFixed(2)}%</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <Card className="mt-8">
+          <div className="mb-5">
+            <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Movimento recente</p>
+            <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Contribuicoes mais novas</h2>
+          </div>
+
+          {!data || data.recentEntries.length === 0 ? (
+            <p className="text-[var(--wedding-text-light)]">Nenhuma contribuicao apareceu por aqui ainda.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {data.recentEntries.map((entry) => (
+                <div key={entry._id} className="rounded-lg border border-[var(--wedding-beige)] p-4">
+                  <p className="text-lg text-[var(--wedding-text)]">{entry.fullName}</p>
+                  <p className="mt-2 text-sm text-[var(--wedding-text-light)]">{formatDate(entry.createdAt)}</p>
+                  <p className="mt-3 text-2xl text-[var(--wedding-text)]">{money(entry.amount)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}

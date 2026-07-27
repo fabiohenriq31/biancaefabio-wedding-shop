@@ -23,6 +23,8 @@ import { AdminGuestsPage } from './pages/admin/AdminGuestsPage';
 import { AdminFinancePage } from './pages/admin/AdminFinancePage';
 import { AdminSuppliersPage } from './pages/admin/AdminSuppliersPage';
 import { AdminSocialPostsPage } from './pages/admin/AdminSocialPostsPage';
+import { AdminTieRafflePage } from './pages/admin/AdminTieRafflePage';
+import { TieRafflePage } from './pages/TieRafflePage';
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'success', Component: SuccessPage },
       { path: 'profile', Component: ProfilePage },
       { path: 'orders', Component: ProfilePage },
+      { path: 'gravata', Component: TieRafflePage },
       {
         Component: AccountProtectedPage,
         children: [
@@ -72,10 +75,18 @@ export const router = createBrowserRouter([
       { path: 'convidados', Component: AdminGuestsPage },
       { path: 'organizacao-do-dia', Component: AdminDaySchedulePage },
       { path: 'financeiro', Component: AdminFinancePage },
+      { path: 'gravata', Component: AdminTieRafflePage },
       { path: 'fornecedores', Component: AdminSuppliersPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },
       { path: 'social', Component: AdminSocialPostsPage },
     ],
+  },
+  {
+    path: '/gravata',
+    loader: () => {
+      window.location.href = '/shopping/gravata';
+      return null;
+    },
   },
   {
     path: '/',
