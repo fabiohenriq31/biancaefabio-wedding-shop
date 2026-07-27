@@ -2,6 +2,7 @@ import { Crown, Gift, Sparkles, Trophy, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { useAuth } from '../contexts/AuthContext';
 import { getTieRaffleStatus } from '../services/tieRaffleApi';
 import type { TieRafflePublicData } from '../types';
 
@@ -22,6 +23,7 @@ function formatDate(value?: string) {
 }
 
 export function TieRafflePage() {
+  const { user, isLoggedIn } = useAuth();
   const [data, setData] = useState<TieRafflePublicData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -74,10 +76,45 @@ export function TieRafflePage() {
     return () => window.clearTimeout(timeout);
   }, [showCelebration]);
 
+  const isWinnerUser = Boolean(
+    data?.winner &&
+    user?.email &&
+    data.winner.email &&
+    user.email.toLowerCase() === data.winner.email.toLowerCase()
+  );
+
   return (
     <div className="min-h-[calc(100vh-160px)] bg-[var(--wedding-offwhite)] py-12">
       {showCelebration && data?.winner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(38,31,28,0.78)] px-6">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {[...Array(18)].map((_, index) => (
+              <span
+                key={index}
+                className="absolute h-3 w-3 rounded-full bg-[var(--wedding-gold)] opacity-80 animate-ping"
+                style={{
+                  left: `${(index % 6) * 18 + 6}%`,
+                  top: `${Math.floor(index / 6) * 24 + 10}%`,
+                  animationDuration: `${1.2 + (index % 4) * 0.35}s`,
+                  animationDelay: `${(index % 5) * 0.15}s`,
+                }}
+              />
+            ))}
+            {[...Array(18)].map((_, index) => (
+              <span
+                key={`spark-${index}`}
+                className="absolute text-white/85 animate-bounce"
+                style={{
+                  left: `${(index % 6) * 16 + 10}%`,
+                  top: `${Math.floor(index / 6) * 22 + 18}%`,
+                  animationDuration: `${1 + (index % 3) * 0.25}s`,
+                  animationDelay: `${(index % 4) * 0.2}s`,
+                }}
+              >
+                ✦
+              </span>
+            ))}
+          </div>
           <div className="w-full max-w-2xl rounded-2xl bg-white p-8 text-center shadow-2xl">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--wedding-beige)] text-[var(--wedding-gold)]">
               <Trophy className="h-10 w-10" />
@@ -87,6 +124,14 @@ export function TieRafflePage() {
             <p className="mt-4 text-lg text-[var(--wedding-text-light)]">
               Entrou no sorteio com {money(data.winner.totalAmount)} em contribuicoes.
             </p>
+            {isWinnerUser && (
+              <div className="mt-6 rounded-2xl bg-[var(--wedding-offwhite)] px-6 py-5">
+                <p className="text-sm uppercase tracking-[0.22em] text-[var(--wedding-gold)]">Parabens</p>
+                <p className="mt-3 text-2xl text-[var(--wedding-text)]">
+                  Voce foi o grande vencedor da hora da gravata!
+                </p>
+              </div>
+            )}
             <div className="mt-8 flex justify-center gap-4 text-[var(--wedding-gold)]">
               <Sparkles className="h-6 w-6 animate-pulse" />
               <Crown className="h-6 w-6 animate-bounce" />
@@ -111,10 +156,17 @@ export function TieRafflePage() {
             Cada contribuicao aumenta as chances no sorteio. Assim que os noivos revelarem o vencedor, essa pagina se atualiza sozinha e mostra a celebracao.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button onClick={() => window.location.assign('/shopping/login')}>
-              <Gift className="h-5 w-5" />
-              Entrar no shopping
-            </Button>
+            {!isLoggedIn ? (
+              <Button onClick={() => window.location.assign('/shopping/login')}>
+                <Gift className="h-5 w-5" />
+                Entrar no shopping
+              </Button>
+            ) : (
+              <Button onClick={() => window.location.assign('/shopping/profile')}>
+                <Crown className="h-5 w-5" />
+                Ver meu perfil
+              </Button>
+            )}
             <Button variant="outline" onClick={() => loadData(false)}>
               Atualizar agora
             </Button>

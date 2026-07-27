@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { ShoppingCart, User, Heart, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Heart, LogOut, Trophy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useState } from 'react';
@@ -59,6 +59,14 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/shopping/gravata')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--wedding-beige)] px-3 py-2 text-sm text-[var(--wedding-text)] hover:bg-[var(--wedding-beige)] transition-colors"
+            >
+              <Trophy className="h-4 w-4 text-[var(--wedding-gold)]" />
+              <span className="hidden sm:inline">Sorteio</span>
+            </button>
+
             {/* Cart */}
             <button
               onClick={() => navigate('/shopping/cart')}
