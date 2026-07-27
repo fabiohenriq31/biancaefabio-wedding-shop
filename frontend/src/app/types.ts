@@ -239,6 +239,7 @@ export interface TieRaffleParticipant {
   totalAmount: number;
   entriesCount: number;
   userId?: string | null;
+  ticketCount: number;
   chancePercent: number;
 }
 

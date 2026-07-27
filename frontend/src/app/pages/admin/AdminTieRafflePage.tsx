@@ -1,4 +1,4 @@
-import { Crown, Dice5, Plus, RefreshCcw, Search, Trash2, Trophy, UserRound, Wallet } from 'lucide-react';
+import { Coins, Crown, Dice5, Plus, RefreshCcw, Search, Trash2, Trophy, UserRound, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -107,11 +107,9 @@ export function AdminTieRafflePage() {
     return () => window.clearTimeout(timeout);
   }, [token, userQuery]);
 
-  const topParticipant = data?.summary.participants[0] || null;
-
   const filteredParticipants = useMemo(() => {
     if (!data) return [];
-    return data.summary.participants.slice(0, 8);
+    return data.summary.participants.slice(0, 12);
   }, [data]);
 
   function selectUser(user: TieRaffleUserLookup) {
@@ -211,9 +209,9 @@ export function AdminTieRafflePage() {
           <p className="mt-2 text-2xl text-[var(--wedding-text)]">{data?.summary.totalEntries || 0}</p>
         </div>
         <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
-          <p className="text-sm text-[var(--wedding-text-light)]">Maior chance agora</p>
+          <p className="text-sm text-[var(--wedding-text-light)]">Maior volume atual</p>
           <p className="mt-2 text-lg text-[var(--wedding-text)]">
-            {topParticipant ? `${topParticipant.fullName} (${topParticipant.chancePercent.toFixed(2)}%)` : 'Aguardando lances'}
+            {filteredParticipants[0] ? `${filteredParticipants[0].fullName} com ${filteredParticipants[0].ticketCount} fichas` : 'Aguardando lances'}
           </p>
         </div>
       </div>
@@ -367,7 +365,7 @@ export function AdminTieRafflePage() {
               <p className="text-sm uppercase tracking-[0.22em] text-[var(--wedding-gold)]">Grande vencedor</p>
               <h3 className="mt-3 text-3xl text-[var(--wedding-text)]">{data.winner.name}</h3>
               <p className="mt-2 text-lg text-[var(--wedding-text-light)]">
-                Chance vencedora baseada em {money(data.winner.totalAmount)}
+                Sorteado a partir de {money(data.winner.totalAmount)} em contribuicoes
               </p>
               <p className="mt-3 text-sm text-[var(--wedding-text-light)]">{formatDate(data.winner.drawnAt)}</p>
             </div>
@@ -387,11 +385,11 @@ export function AdminTieRafflePage() {
             </div>
             <div className="rounded-lg border border-[var(--wedding-beige)] p-4">
               <div className="mb-2 flex items-center gap-2 text-[var(--wedding-text)]">
-                <Crown className="h-4 w-4 text-[var(--wedding-gold)]" />
-                Participante lider
+                <Coins className="h-4 w-4 text-[var(--wedding-gold)]" />
+                Lider em fichas
               </div>
               <p className="text-sm text-[var(--wedding-text)]">
-                {topParticipant ? `${topParticipant.fullName} com ${money(topParticipant.totalAmount)}` : 'Aguardando registros'}
+                {filteredParticipants[0] ? `${filteredParticipants[0].fullName} com ${filteredParticipants[0].ticketCount} fichas` : 'Aguardando registros'}
               </p>
             </div>
           </div>
@@ -401,8 +399,8 @@ export function AdminTieRafflePage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-lg border border-[var(--wedding-beige)] bg-white p-6 shadow-sm">
           <div className="mb-5">
-            <h2 className="text-2xl text-[var(--wedding-text)]">Ranking de chances</h2>
-            <p className="text-sm text-[var(--wedding-text-light)]">Quanto maior o total depositado, maior a probabilidade no sorteio.</p>
+            <h2 className="text-2xl text-[var(--wedding-text)]">Ranking de fichas</h2>
+            <p className="text-sm text-[var(--wedding-text-light)]">Assumimos 1 ficha para cada R$ 10,00 acumulados por participante.</p>
           </div>
 
           {loading ? (
@@ -423,7 +421,7 @@ export function AdminTieRafflePage() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg text-[var(--wedding-text)]">{money(participant.totalAmount)}</p>
-                      <p className="text-sm text-[var(--wedding-gold)]">{participant.chancePercent.toFixed(2)}% de chance</p>
+                      <p className="text-sm text-[var(--wedding-gold)]">{participant.ticketCount} fichas</p>
                     </div>
                   </div>
                 </article>

@@ -67,6 +67,7 @@ function summarizeEntries(entries) {
             totalAmount: Number(entry.amount || 0),
             entriesCount: 1,
             userId: entry.userId ? String(entry.userId) : null,
+            ticketCount: 0,
             chancePercent: 0,
         });
     }
@@ -74,6 +75,7 @@ function summarizeEntries(entries) {
         .map((participant) => ({
         ...participant,
         totalAmount: Math.round(participant.totalAmount * 100) / 100,
+        ticketCount: Math.max(1, Math.floor(participant.totalAmount / 10)),
         chancePercent: totalAmount > 0
             ? Math.round((participant.totalAmount / totalAmount) * 10000) / 100
             : 0,
@@ -113,7 +115,7 @@ async function loadTieRaffleData() {
 function pickWinner(participants) {
     const weightedPool = participants.map((participant) => ({
         ...participant,
-        weight: Math.max(1, Math.round(participant.totalAmount * 100)),
+        weight: Math.max(1, participant.ticketCount),
     }));
     const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
     if (totalWeight <= 0) {

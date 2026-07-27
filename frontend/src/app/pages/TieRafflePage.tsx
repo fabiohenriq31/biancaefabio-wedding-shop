@@ -153,7 +153,7 @@ export function TieRafflePage() {
           <p className="text-sm uppercase tracking-[0.28em] text-[var(--wedding-gold)]">Ao vivo</p>
           <h1 className="mt-4 text-5xl text-[var(--wedding-text)]">Hora da gravata</h1>
           <p className="mt-4 max-w-3xl text-lg text-[var(--wedding-text-light)]">
-            Cada contribuicao aumenta as chances no sorteio. Assim que os noivos revelarem o vencedor, essa pagina se atualiza sozinha e mostra a celebracao.
+            Deixe essa pagina aberta para acompanhar a revelacao do vencedor. Quando o sorteio acontecer, a tela se atualiza sozinha e mostra a celebracao.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             {!isLoggedIn ? (
@@ -193,7 +193,7 @@ export function TieRafflePage() {
             <div className="flex items-center gap-3">
               <Crown className="h-5 w-5 text-[var(--wedding-gold)]" />
               <div>
-                <p className="text-sm text-[var(--wedding-text-light)]">Participantes</p>
+                <p className="text-sm text-[var(--wedding-text-light)]">Pessoas participando</p>
                 <p className="mt-1 text-3xl text-[var(--wedding-text)]">{data?.participantCount || 0}</p>
               </div>
             </div>
@@ -209,7 +209,7 @@ export function TieRafflePage() {
           </Card>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="mt-8">
           <Card className="overflow-hidden" padding="none">
             <div className="border-b border-[var(--wedding-beige)] px-6 py-6">
               <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Resultado</p>
@@ -223,9 +223,6 @@ export function TieRafflePage() {
                 <div className="rounded-2xl bg-[var(--wedding-offwhite)] p-8 text-center">
                   <p className="text-sm uppercase tracking-[0.25em] text-[var(--wedding-gold)]">Ganhador revelado</p>
                   <h3 className="mt-4 text-4xl text-[var(--wedding-text)]">{data.winner.name}</h3>
-                  <p className="mt-3 text-lg text-[var(--wedding-text-light)]">
-                    Participou com {money(data.winner.totalAmount)}
-                  </p>
                   <p className="mt-4 text-sm text-[var(--wedding-text-light)]">{formatDate(data.winner.drawnAt)}</p>
                 </div>
               ) : (
@@ -237,40 +234,12 @@ export function TieRafflePage() {
               )}
             </div>
           </Card>
-
-          <Card>
-            <div className="mb-5">
-              <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Ranking</p>
-              <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Maiores chances agora</h2>
-            </div>
-
-            {!data || data.topParticipants.length === 0 ? (
-              <p className="text-[var(--wedding-text-light)]">Nenhuma participacao registrada ainda.</p>
-            ) : (
-              <div className="space-y-4">
-                {data.topParticipants.slice(0, 6).map((participant, index) => (
-                  <div key={participant.key} className="rounded-lg border border-[var(--wedding-beige)] p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm text-[var(--wedding-text-light)]">#{index + 1}</p>
-                        <p className="text-lg text-[var(--wedding-text)]">{participant.fullName}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg text-[var(--wedding-text)]">{money(participant.totalAmount)}</p>
-                        <p className="text-sm text-[var(--wedding-gold)]">{participant.chancePercent.toFixed(2)}%</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
         </div>
 
         <Card className="mt-8">
           <div className="mb-5">
-            <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Movimento recente</p>
-            <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Contribuicoes mais novas</h2>
+            <p className="text-sm uppercase tracking-[0.2em] text-[var(--wedding-gold)]">Participacao</p>
+            <h2 className="mt-2 text-3xl text-[var(--wedding-text)]">Ultimos nomes registrados</h2>
           </div>
 
           {!data || data.recentEntries.length === 0 ? (
@@ -281,7 +250,6 @@ export function TieRafflePage() {
                 <div key={entry._id} className="rounded-lg border border-[var(--wedding-beige)] p-4">
                   <p className="text-lg text-[var(--wedding-text)]">{entry.fullName}</p>
                   <p className="mt-2 text-sm text-[var(--wedding-text-light)]">{formatDate(entry.createdAt)}</p>
-                  <p className="mt-3 text-2xl text-[var(--wedding-text)]">{money(entry.amount)}</p>
                 </div>
               ))}
             </div>
