@@ -24,6 +24,7 @@ import { AdminFinancePage } from './pages/admin/AdminFinancePage';
 import { AdminSuppliersPage } from './pages/admin/AdminSuppliersPage';
 import { AdminSocialPostsPage } from './pages/admin/AdminSocialPostsPage';
 import { AdminTieRafflePage } from './pages/admin/AdminTieRafflePage';
+import { AdminAccommodationsPage } from './pages/admin/AdminAccommodationsPage';
 import { TieRafflePage } from './pages/TieRafflePage';
 
 export const router = createBrowserRouter([
@@ -76,6 +77,7 @@ export const router = createBrowserRouter([
       { path: 'organizacao-do-dia', Component: AdminDaySchedulePage },
       { path: 'financeiro', Component: AdminFinancePage },
       { path: 'gravata', Component: AdminTieRafflePage },
+      { path: 'hospedagens', Component: AdminAccommodationsPage },
       { path: 'fornecedores', Component: AdminSuppliersPage },
       { path: 'fotos', Component: AdminGuestPhotosPage },
       { path: 'social', Component: AdminSocialPostsPage },

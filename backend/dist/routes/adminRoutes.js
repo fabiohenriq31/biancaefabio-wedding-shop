@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController_1 = require("../controllers/adminController");
+const accommodationController_1 = require("../controllers/accommodationController");
 const dayScheduleController_1 = require("../controllers/dayScheduleController");
 const adminFinanceController_1 = require("../controllers/adminFinanceController");
 const guestController_1 = require("../controllers/guestController");
@@ -15,6 +16,10 @@ const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.requireAuth, adminMiddleware_1.requireAdmin);
 router.get("/summary", adminController_1.getAdminSummary);
+router.get("/accommodations", accommodationController_1.getAdminAccommodations);
+router.post("/accommodations", accommodationController_1.createAccommodation);
+router.patch("/accommodations/:id", accommodationController_1.updateAccommodation);
+router.delete("/accommodations/:id", accommodationController_1.deleteAccommodation);
 router.get("/guests", guestController_1.getAdminGuests);
 router.post("/guests", guestController_1.createAdminGuest);
 router.patch("/guests/:id", guestController_1.updateGuest);

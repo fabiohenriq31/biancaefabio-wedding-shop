@@ -143,6 +143,52 @@ export interface GuestCleanupSetting {
   updatedAt?: string;
 }
 
+export type AccommodationType = 'suite' | 'common';
+export type AccommodationStatus = 'available' | 'unavailable';
+
+export interface AccommodationGuest {
+  _id: string;
+  name: string;
+  status: GuestStatus;
+  isChild: boolean;
+  guestType: GuestType;
+}
+
+export interface Accommodation {
+  _id: string;
+  name: string;
+  type: AccommodationType;
+  status: AccommodationStatus;
+  bedDescription: string;
+  fixedBeds: number;
+  extraMattresses: number;
+  extraPlaces: number;
+  notes?: string;
+  guestIds: string[];
+  assignedGuests: AccommodationGuest[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccommodationSummary {
+  totalRooms: number;
+  suites: number;
+  commonRooms: number;
+  unavailable: number;
+  fixedBeds: number;
+  extraMattresses: number;
+  extraPlaces: number;
+  totalCapacity: number;
+  occupiedPlaces: number;
+  availablePlaces: number;
+}
+
+export interface AdminAccommodationsData {
+  accommodations: Accommodation[];
+  guests: AccommodationGuest[];
+  summary: AccommodationSummary;
+}
+
 export interface GuestLookupResult {
   _id: string;
   name: string;

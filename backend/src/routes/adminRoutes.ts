@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { getAdminSummary } from "../controllers/adminController";
 import {
+  createAccommodation,
+  deleteAccommodation,
+  getAdminAccommodations,
+  updateAccommodation,
+} from "../controllers/accommodationController";
+import {
   createAdminDayScheduleItem,
   deleteAdminDayScheduleItem,
   getAdminDaySchedule,
@@ -58,6 +64,10 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 router.get("/summary", getAdminSummary);
+router.get("/accommodations", getAdminAccommodations);
+router.post("/accommodations", createAccommodation);
+router.patch("/accommodations/:id", updateAccommodation);
+router.delete("/accommodations/:id", deleteAccommodation);
 router.get("/guests", getAdminGuests);
 router.post("/guests", createAdminGuest);
 router.patch("/guests/:id", updateGuest);
