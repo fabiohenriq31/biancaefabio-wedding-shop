@@ -71,13 +71,6 @@ export function ProfilePage() {
       setProfileMessage('Perfil atualizado com sucesso.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao atualizar perfil.';
-
-      if (message.toLowerCase().includes('autorizado') || message.toLowerCase().includes('token')) {
-        logout();
-        navigate('/shopping/login?redirect=/shopping/profile');
-        return;
-      }
-
       setProfileError(message);
     } finally {
       setSavingProfile(false);

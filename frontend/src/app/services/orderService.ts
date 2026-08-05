@@ -1,4 +1,5 @@
 import { API_URL } from "./api";
+import { authorizedJsonRequest, getStoredAuthToken } from "./authSession";
 import type { PaymentMethod } from "../types";
 
 type CreateOrderPayload = {
@@ -16,90 +17,27 @@ type CreateOrderPayload = {
   }>;
 };
 
-function getAuthToken() {
-  try {
-    const saved = localStorage.getItem("wedding_auth");
-    if (!saved) return null;
-
-    const parsed = JSON.parse(saved);
-    return parsed?.token || null;
-  } catch {
-    return null;
-  }
-}
-
-async function readJson(response: Response) {
-  return response.json().catch(() => null);
-}
-
 export async function createOrder(payload: CreateOrderPayload) {
-  const response = await fetch(`${API_URL}/orders`, {
+  return authorizedJsonRequest(`${API_URL}/orders`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao criar pedido.");
-  }
-
-  return data;
 }
 
 export async function getOrdersByUser(userId: string) {
-  const token = getAuthToken();
-
-  const response = await fetch(`${API_URL}/orders/user/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao buscar pedidos.");
-  }
-
-  return data;
+  const token = getStoredAuthToken();
+  return authorizedJsonRequest(`${API_URL}/orders/user/${userId}`, {}, token);
 }
 
 export async function getOrderById(orderId: string) {
-  const token = getAuthToken();
-
-  const response = await fetch(`${API_URL}/orders/${orderId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao buscar pedido.");
-  }
-
-  return data;
+  const token = getStoredAuthToken();
+  return authorizedJsonRequest(`${API_URL}/orders/${orderId}`, {}, token);
 }
 
 export async function getAllOrders() {
-  const token = getAuthToken();
-
-  const response = await fetch(`${API_URL}/orders`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao buscar pedidos.");
-  }
-
-  return data;
+  const token = getStoredAuthToken();
+  return authorizedJsonRequest(`${API_URL}/orders`, {}, token);
 }

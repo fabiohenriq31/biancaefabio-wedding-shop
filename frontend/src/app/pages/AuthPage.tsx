@@ -2,7 +2,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import { loginWithGoogle, loginWithPassword, registerWithPassword } from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { consumeAuthNotice } from "../services/authSession";
 
 export function AuthPage() {
   const { login } = useAuth();
@@ -15,6 +16,19 @@ export function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionNotice, setSessionNotice] = useState('');
+
+  useEffect(() => {
+    const notice = consumeAuthNotice();
+    if (notice) {
+      setSessionNotice(notice);
+      return;
+    }
+
+    if (searchParams.get('session') === 'expired') {
+      setSessionNotice('Sua sessao expirou. Entre novamente para continuar.');
+    }
+  }, [searchParams]);
 
   async function handlePasswordLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,6 +60,12 @@ export function AuthPage() {
         <p className="text-[var(--wedding-text-light)] mb-6">
           {isRegister ? 'Crie sua conta para participar do B&F Social' : 'Entre para continuar'}
         </p>
+
+        {sessionNotice && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {sessionNotice}
+          </div>
+        )}
 
         <form onSubmit={handlePasswordLogin} className="space-y-4 mb-6">
           {isRegister && (

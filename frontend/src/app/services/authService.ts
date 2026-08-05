@@ -1,4 +1,5 @@
 import { API_URL } from "./api";
+import { authorizedJsonRequest } from "./authSession";
 
 type GoogleLoginResponse = {
   token: string;
@@ -87,19 +88,12 @@ export async function updateProfile(
     formData.append("avatar", avatar);
   }
 
-  const response = await fetch(`${API_URL}/auth/me`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
+  return authorizedJsonRequest<{ user: AuthResponse["user"] }>(
+    `${API_URL}/auth/me`,
+    {
+      method: "PATCH",
+      body: formData,
     },
-    body: formData,
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Erro ao atualizar perfil");
-  }
-
-  return data;
+    token
+  );
 }

@@ -1,4 +1,5 @@
 import { API_URL } from './api';
+import { authorizedJsonRequest } from './authSession';
 
 export type SocialUser = {
   id: string;
@@ -26,48 +27,28 @@ export type SocialNotification = {
   createdAt: string;
 };
 
-function authHeaders(token: string) {
-  return { Authorization: `Bearer ${token}` };
+export function getSocialUsers(token: string) {
+  return authorizedJsonRequest<SocialUser[]>(`${API_URL}/api/social/users`, {}, token);
 }
 
-export async function getSocialUsers(token: string) {
-  const response = await fetch(`${API_URL}/api/social/users`, {
-    headers: authHeaders(token),
-  });
-
-  if (!response.ok) throw new Error('Nao foi possivel carregar convidados.');
-  return response.json() as Promise<SocialUser[]>;
+export function getChatMessages(token: string) {
+  return authorizedJsonRequest<ChatMessage[]>(`${API_URL}/api/social/chat/messages`, {}, token);
 }
 
-export async function getChatMessages(token: string) {
-  const response = await fetch(`${API_URL}/api/social/chat/messages`, {
-    headers: authHeaders(token),
-  });
-
-  if (!response.ok) throw new Error('Nao foi possivel carregar o bate-papo.');
-  return response.json() as Promise<ChatMessage[]>;
-}
-
-export async function sendChatMessage(token: string, message: string) {
-  const response = await fetch(`${API_URL}/api/social/chat/messages`, {
-    method: 'POST',
-    headers: {
-      ...authHeaders(token),
-      'Content-Type': 'application/json',
+export function sendChatMessage(token: string, message: string) {
+  return authorizedJsonRequest<ChatMessage>(
+    `${API_URL}/api/social/chat/messages`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
     },
-    body: JSON.stringify({ message }),
-  });
-
-  const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.message || 'Nao foi possivel enviar mensagem.');
-  return data as ChatMessage;
+    token
+  );
 }
 
-export async function getSocialNotifications(token: string) {
-  const response = await fetch(`${API_URL}/api/social/notifications`, {
-    headers: authHeaders(token),
-  });
-
-  if (!response.ok) throw new Error('Nao foi possivel carregar notificacoes.');
-  return response.json() as Promise<SocialNotification[]>;
+export function getSocialNotifications(token: string) {
+  return authorizedJsonRequest<SocialNotification[]>(`${API_URL}/api/social/notifications`, {}, token);
 }

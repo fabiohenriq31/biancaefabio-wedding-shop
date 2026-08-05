@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 
 type AdminGuardProps = {
@@ -17,6 +17,7 @@ const ALLOWED_ADMIN_EMAILS = (
 export function AdminGuard({ children }: AdminGuardProps) {
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isAdmin = 
     !!user?.email &&
@@ -24,11 +25,12 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
     useEffect(() => {
       if (!isLoggedIn){
-        navigate(`/shopping/login?redirect=${encodeURIComponent('/admin')}`);
+        const redirectTo = `${location.pathname}${location.search}${location.hash}`;
+        navigate(`/shopping/login?redirect=${encodeURIComponent(redirectTo)}`);
         return
       }
 
-    }, [isLoggedIn, isAdmin, navigate]);
+    }, [isLoggedIn, isAdmin, location.hash, location.pathname, location.search, navigate]);
     
     if (!isLoggedIn) {
       return null!!

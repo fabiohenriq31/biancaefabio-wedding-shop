@@ -9,9 +9,10 @@ export function AccountProtectedPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate(`/shopping/login?redirect=${encodeURIComponent(location.pathname)}`);
+      const redirectTo = `${location.pathname}${location.search}${location.hash}`;
+      navigate(`/shopping/login?redirect=${encodeURIComponent(redirectTo)}`);
     }
-  }, [isLoggedIn, location.pathname, navigate]);
+  }, [isLoggedIn, location.hash, location.pathname, location.search, navigate]);
 
   if (!isLoggedIn) {
     return null;

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { AUTH_STORAGE_KEY } from "../services/authSession";
 
 type AuthUser = {
   id: string;
@@ -19,8 +20,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const AUTH_STORAGE_KEY = "wedding_auth";
 
 function getInitialAuth() {
   try {
