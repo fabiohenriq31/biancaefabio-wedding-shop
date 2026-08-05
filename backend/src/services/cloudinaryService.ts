@@ -42,8 +42,8 @@ export async function uploadSocialPostImage(file: Express.Multer.File) {
         folder: socialFolder,
         resource_type: "image",
         transformation: [
-          { quality: "auto", fetch_format: "auto" },
-          { width: 1800, crop: "limit" },
+          { quality: "auto:best", fetch_format: "auto", dpr: "auto" },
+          { width: 2200, height: 2200, crop: "limit" },
         ],
       },
       (error, result) => {
@@ -88,5 +88,5 @@ export async function deleteGuestPhoto(publicId: string) {
 }
 
 export function buildThumbnailUrl(imageUrl: string) {
-  return imageUrl.replace("/upload/", "/upload/c_fill,w_520,h_390,q_auto,f_auto/");
+  return imageUrl.replace("/upload/", "/upload/c_limit,w_1200,h_1200,q_auto:good,dpr_auto,f_auto/");
 }

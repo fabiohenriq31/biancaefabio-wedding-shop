@@ -39,8 +39,8 @@ async function uploadSocialPostImage(file) {
             folder: socialFolder,
             resource_type: "image",
             transformation: [
-                { quality: "auto", fetch_format: "auto" },
-                { width: 1800, crop: "limit" },
+                { quality: "auto:best", fetch_format: "auto", dpr: "auto" },
+                { width: 2200, height: 2200, crop: "limit" },
             ],
         }, (error, result) => {
             if (error || !result) {
@@ -74,6 +74,6 @@ async function deleteGuestPhoto(publicId) {
     await cloudinary_1.v2.uploader.destroy(publicId, { resource_type: "image" });
 }
 function buildThumbnailUrl(imageUrl) {
-    return imageUrl.replace("/upload/", "/upload/c_fill,w_520,h_390,q_auto,f_auto/");
+    return imageUrl.replace("/upload/", "/upload/c_limit,w_1200,h_1200,q_auto:good,dpr_auto,f_auto/");
 }
 //# sourceMappingURL=cloudinaryService.js.map

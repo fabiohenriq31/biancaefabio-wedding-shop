@@ -1,4 +1,4 @@
-import { Camera, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Plus, Repeat2, Save, Send, Share, Sparkles, User, X } from 'lucide-react';
+import { Camera, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Plus, Repeat2, Save, Send, Share, Sparkles, User, X, ZoomIn } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,6 +38,7 @@ export function SocialPage() {
   const [showMobileComposer, setShowMobileComposer] = useState(false);
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentMessage, setCommentMessage] = useState('');
+  const [lightboxPost, setLightboxPost] = useState<SocialPost | null>(null);
 
   async function loadPosts() {
     try {
@@ -223,7 +224,24 @@ export function SocialPage() {
                     </div>
                   ) : <p className="mt-1 whitespace-pre-line text-[15px] leading-6 text-[var(--wedding-text)]">{post.message}</p>}
 
-                  {post.imageUrl && <img src={post.imageUrl} alt={`Post de ${post.authorName}`} className="mt-3 max-h-[620px] w-full rounded-2xl border border-[var(--wedding-beige)] object-cover" loading="lazy" />}
+                  {post.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxPost(post)}
+                      className="group relative mt-3 block w-full overflow-hidden rounded-2xl border border-[var(--wedding-beige)] bg-[#f8f4ef] text-left"
+                    >
+                      <img
+                        src={post.imageUrl}
+                        alt={`Post de ${post.authorName}`}
+                        className="max-h-[680px] w-full object-contain"
+                        loading="lazy"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+                        <ZoomIn className="h-3.5 w-3.5" />
+                        Ampliar
+                      </span>
+                    </button>
+                  )}
                   <div className="mt-3 flex max-w-md items-center justify-between text-sm text-[var(--wedding-text-light)]">
                     <button type="button" onClick={() => setCommentingId((current) => current === post._id ? null : post._id)} className="group inline-flex items-center gap-2 rounded-full transition hover:text-[var(--wedding-gold)]"><span className="rounded-full p-2 group-hover:bg-[var(--wedding-beige)]"><MessageCircle className="h-4 w-4" /></span>{comments.length}</button>
                     <button type="button" onClick={() => handleRepost(post._id)} className={`group inline-flex items-center gap-2 rounded-full transition hover:text-emerald-600 ${userReposted ? 'text-emerald-600' : ''}`}><span className="rounded-full p-2 group-hover:bg-emerald-50"><Repeat2 className="h-4 w-4" /></span>{post.repostCount || 0}</button>
@@ -323,6 +341,40 @@ export function SocialPage() {
               </label>
             </div>
           </form>
+        </div>
+      )}
+
+      {lightboxPost?.imageUrl && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/88 p-4"
+          onClick={() => setLightboxPost(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxPost(null)}
+            className="absolute right-4 top-4 rounded-full bg-white/12 p-3 text-white transition hover:bg-white/20"
+            aria-label="Fechar imagem"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          <div
+            className="w-full max-w-6xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              src={lightboxPost.imageUrl}
+              alt={`Post de ${lightboxPost.authorName}`}
+              className="max-h-[82vh] w-full rounded-3xl object-contain"
+            />
+            <div className="mt-4 flex items-center justify-between gap-4 text-white">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold">{lightboxPost.authorName || 'Convidado'}</p>
+                <p className="mt-1 text-sm text-white/75">{formatDate(lightboxPost.createdAt)}</p>
+              </div>
+              <p className="max-w-2xl text-right text-sm text-white/85">{lightboxPost.message}</p>
+            </div>
+          </div>
         </div>
       )}
     </>
