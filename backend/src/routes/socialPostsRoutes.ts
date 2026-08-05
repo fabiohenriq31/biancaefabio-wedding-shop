@@ -15,7 +15,10 @@ const router = Router();
 
 router.use(requireAuth);
 router.get("/", getPublicSocialPosts);
-router.post("/", guestPhotoUpload.single("image"), createSocialPost);
+router.post("/", guestPhotoUpload.fields([
+  { name: "images", maxCount: 10 },
+  { name: "image", maxCount: 10 },
+]), createSocialPost);
 router.patch("/:id", updateSocialPost);
 router.patch("/:id/like", likeSocialPost);
 router.patch("/:id/repost", repostSocialPost);

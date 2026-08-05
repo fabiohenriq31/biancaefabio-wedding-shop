@@ -23,6 +23,22 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getPostImages(post: SocialPost) {
+  if (post.images && post.images.length > 0) {
+    return post.images;
+  }
+
+  if (post.imageUrl) {
+    return [{
+      imageUrl: post.imageUrl,
+      thumbnailUrl: post.thumbnailUrl || post.imageUrl,
+      publicId: post.publicId || undefined,
+    }];
+  }
+
+  return [];
+}
+
 export function AdminSocialPostsPage() {
   const { token } = useAuth();
   const [posts, setPosts] = useState<SocialPost[]>([]);
@@ -101,10 +117,19 @@ export function AdminSocialPostsPage() {
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {posts.map((post) => {
             const visible = post.status === 'approved';
+            const postImages = getPostImages(post);
+            const previewImage = postImages[0];
             return (
               <article key={post._id} className="overflow-hidden rounded-lg border border-[var(--wedding-beige)] bg-white shadow-sm">
-                {post.imageUrl && (
-                  <img src={post.thumbnailUrl || post.imageUrl} alt={post.authorName} className="h-64 w-full object-cover" />
+                {previewImage && (
+                  <div className="relative">
+                    <img src={previewImage.thumbnailUrl || previewImage.imageUrl} alt={post.authorName} className="h-64 w-full object-cover" />
+                    {postImages.length > 1 && (
+                      <span className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs text-white">
+                        {postImages.length} fotos
+                      </span>
+                    )}
+                  </div>
                 )}
                 <div className="space-y-4 p-5">
                   <div className="flex items-start justify-between gap-4">

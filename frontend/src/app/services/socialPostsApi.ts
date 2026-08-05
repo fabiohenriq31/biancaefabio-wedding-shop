@@ -9,17 +9,17 @@ export function getSocialPosts(token: string) {
 export async function createSocialPost({
   token,
   message,
-  image,
+  images,
 }: {
   token: string;
   message: string;
-  image?: File | null;
+  images?: File[];
 }) {
   const formData = new FormData();
   formData.append('message', message);
 
-  if (image) {
-    formData.append('image', image);
+  for (const image of images || []) {
+    formData.append('images', image);
   }
 
   return authorizedJsonRequest<{ message: string; post: SocialPost }>(

@@ -97,6 +97,7 @@ export interface SocialPost {
   authorName: string;
   authorAvatarUrl?: string | null;
   message: string;
+  images?: SocialPostImage[];
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
   publicId?: string | null;
@@ -109,6 +110,12 @@ export interface SocialPost {
   status: SocialPostStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SocialPostImage {
+  imageUrl: string;
+  thumbnailUrl?: string | null;
+  publicId?: string | null;
 }
 
 export interface SocialPostComment {

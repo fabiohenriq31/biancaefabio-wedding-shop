@@ -1,4 +1,4 @@
-import { Camera, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Plus, Repeat2, Save, Send, Share, Sparkles, User, X, ZoomIn } from 'lucide-react';
+import { Camera, ChevronLeft, ChevronRight, Heart, Home, ImagePlus, Images, MessageCircle, MoreHorizontal, Plus, Repeat2, Save, Send, Share, Sparkles, User, X, ZoomIn } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,11 +23,27 @@ function UserAvatar({ src, name, className = 'h-11 w-11' }: { src?: string | nul
   return <span className={`${className} flex shrink-0 items-center justify-center rounded-full bg-[var(--wedding-gold)] text-white`}>{avatarInitial(name)}</span>;
 }
 
+function getPostImages(post: SocialPost) {
+  if (post.images && post.images.length > 0) {
+    return post.images;
+  }
+
+  if (post.imageUrl) {
+    return [{
+      imageUrl: post.imageUrl,
+      thumbnailUrl: post.thumbnailUrl || post.imageUrl,
+      publicId: post.publicId || undefined,
+    }];
+  }
+
+  return [];
+}
+
 export function SocialPage() {
   const { token, user } = useAuth();
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [message, setMessage] = useState('');
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -38,7 +54,8 @@ export function SocialPage() {
   const [showMobileComposer, setShowMobileComposer] = useState(false);
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentMessage, setCommentMessage] = useState('');
-  const [lightboxPost, setLightboxPost] = useState<SocialPost | null>(null);
+  const [lightboxState, setLightboxState] = useState<{ post: SocialPost; index: number } | null>(null);
+  const [carouselIndexes, setCarouselIndexes] = useState<Record<string, number>>({});
 
   async function loadPosts() {
     try {
@@ -66,10 +83,10 @@ export function SocialPage() {
     try {
       setSending(true);
       if (!token) return;
-      const data = await createSocialPost({ token, message, image });
+      const data = await createSocialPost({ token, message, images });
       setPosts((current) => [data.post, ...current]);
       setMessage('');
-      setImage(null);
+      setImages([]);
       setShowMobileComposer(false);
       setFeedback(data.message);
     } catch (err) {
@@ -140,6 +157,52 @@ export function SocialPage() {
     }
   }
 
+  function handleImagesSelected(fileList: FileList | null) {
+    if (!fileList?.length) return;
+
+    const nextFiles = Array.from(fileList).slice(0, 10);
+    setImages(nextFiles);
+  }
+
+  function changeCarousel(postId: string, total: number, direction: 'prev' | 'next') {
+    setCarouselIndexes((current) => {
+      const index = current[postId] || 0;
+      const nextIndex = direction === 'next'
+        ? (index + 1) % total
+        : (index - 1 + total) % total;
+
+      return {
+        ...current,
+        [postId]: nextIndex,
+      };
+    });
+  }
+
+  function setCarouselIndex(postId: string, index: number) {
+    setCarouselIndexes((current) => ({
+      ...current,
+      [postId]: index,
+    }));
+  }
+
+  function changeLightbox(direction: 'prev' | 'next') {
+    setLightboxState((current) => {
+      if (!current) return current;
+
+      const images = getPostImages(current.post);
+      if (images.length <= 1) return current;
+
+      const nextIndex = direction === 'next'
+        ? (current.index + 1) % images.length
+        : (current.index - 1 + images.length) % images.length;
+
+      return {
+        ...current,
+        index: nextIndex,
+      };
+    });
+  }
+
   return (
     <>
       <main className="min-h-screen border-[var(--wedding-beige)] bg-white pb-[calc(84px+env(safe-area-inset-bottom))] text-[var(--wedding-text)] lg:border-r lg:pb-0">
@@ -172,12 +235,29 @@ export function SocialPage() {
             <UserAvatar src={user?.avatarUrl} name={user?.name} className="h-12 w-12" />
             <div className="min-w-0 flex-1">
               <textarea value={message} onChange={(event) => setMessage(event.target.value)} className="min-h-20 w-full resize-none border-0 bg-transparent py-2 text-xl text-[var(--wedding-text)] outline-none placeholder:text-[var(--wedding-text-light)]" placeholder="O que esta acontecendo?" maxLength={280} required />
-              {image && <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-sm text-[var(--wedding-text)]"><Camera className="h-4 w-4 text-[var(--wedding-gold)]" /><span className="truncate">{image.name}</span><button type="button" onClick={() => setImage(null)} className="font-semibold text-[var(--wedding-gold)]">remover</button></div>}
+              {images.length > 0 && (
+                <div className="mb-3 rounded-2xl bg-[var(--wedding-beige)] p-3 text-sm text-[var(--wedding-text)]">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-2">
+                      <Images className="h-4 w-4 text-[var(--wedding-gold)]" />
+                      {images.length} {images.length === 1 ? 'foto selecionada' : 'fotos selecionadas'}
+                    </span>
+                    <button type="button" onClick={() => setImages([])} className="font-semibold text-[var(--wedding-gold)]">remover</button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {images.map((file) => (
+                      <span key={`${file.name}-${file.size}`} className="shrink-0 rounded-full bg-white px-3 py-1 text-xs">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {feedback && <p className="mb-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{feedback}</p>}
               {error && <p className="mb-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
               <div className="flex items-center justify-between border-t border-[var(--wedding-beige)] pt-3">
                 <div className="flex items-center gap-2 text-[var(--wedding-gold)]">
-                  <label className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:bg-[var(--wedding-beige)]" title="Adicionar foto"><ImagePlus className="h-5 w-5" /><input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={(event) => setImage(event.target.files?.[0] || null)} /></label>
+                  <label className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:bg-[var(--wedding-beige)]" title="Adicionar foto"><ImagePlus className="h-5 w-5" /><input type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={(event) => handleImagesSelected(event.target.files)} /></label>
                 </div>
                 <button type="submit" disabled={sending || !message.trim()} className="inline-flex items-center gap-2 rounded-full bg-[var(--wedding-text)] px-5 py-2 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" />{sending ? 'Postando...' : 'Postar'}</button>
               </div>
@@ -192,6 +272,9 @@ export function SocialPage() {
           const userLiked = Boolean(user?.id && post.likedBy?.map(String).includes(user.id));
           const userReposted = Boolean(user?.id && post.repostedBy?.map(String).includes(user.id));
           const comments = post.comments || [];
+          const postImages = getPostImages(post);
+          const activeImageIndex = Math.min(carouselIndexes[post._id] || 0, Math.max(postImages.length - 1, 0));
+          const activeImage = postImages[activeImageIndex];
           return (
             <article key={post._id} className="border-b border-[var(--wedding-beige)] px-4 py-3 transition hover:bg-[#fbf9f7] lg:px-5 lg:py-4">
               <div className="flex gap-3">
@@ -224,23 +307,65 @@ export function SocialPage() {
                     </div>
                   ) : <p className="mt-1 whitespace-pre-line text-[15px] leading-6 text-[var(--wedding-text)]">{post.message}</p>}
 
-                  {post.imageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setLightboxPost(post)}
-                      className="group relative mt-3 block w-full overflow-hidden rounded-2xl border border-[var(--wedding-beige)] bg-[#f8f4ef] text-left"
-                    >
-                      <img
-                        src={post.imageUrl}
-                        alt={`Post de ${post.authorName}`}
-                        className="max-h-[680px] w-full object-contain"
-                        loading="lazy"
-                      />
+                  {activeImage && (
+                    <div className="group relative mt-3 overflow-hidden rounded-2xl border border-[var(--wedding-beige)] bg-[#f8f4ef]">
+                      <button
+                        type="button"
+                        onClick={() => setLightboxState({ post, index: activeImageIndex })}
+                        className="block w-full text-left"
+                      >
+                        <img
+                          src={activeImage.imageUrl}
+                          alt={`Post de ${post.authorName}`}
+                          className="max-h-[680px] w-full object-contain"
+                          loading="lazy"
+                        />
+                      </button>
+
+                      {postImages.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => changeCarousel(post._id, postImages.length, 'prev')}
+                            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/65"
+                            aria-label="Foto anterior"
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => changeCarousel(post._id, postImages.length, 'next')}
+                            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/65"
+                            aria-label="Próxima foto"
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+                          <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2">
+                            {postImages.map((_, index) => (
+                              <button
+                                key={`${post._id}-dot-${index}`}
+                                type="button"
+                                onClick={() => setCarouselIndex(post._id, index)}
+                                className={`h-2.5 rounded-full transition ${index === activeImageIndex ? 'w-6 bg-white' : 'w-2.5 bg-white/55'}`}
+                                aria-label={`Abrir foto ${index + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+
                       <span className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
                         <ZoomIn className="h-3.5 w-3.5" />
                         Ampliar
                       </span>
-                    </button>
+
+                      {postImages.length > 1 && (
+                        <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white">
+                          <Images className="h-3.5 w-3.5" />
+                          {activeImageIndex + 1}/{postImages.length}
+                        </span>
+                      )}
+                    </div>
                   )}
                   <div className="mt-3 flex max-w-md items-center justify-between text-sm text-[var(--wedding-text-light)]">
                     <button type="button" onClick={() => setCommentingId((current) => current === post._id ? null : post._id)} className="group inline-flex items-center gap-2 rounded-full transition hover:text-[var(--wedding-gold)]"><span className="rounded-full p-2 group-hover:bg-[var(--wedding-beige)]"><MessageCircle className="h-4 w-4" /></span>{comments.length}</button>
@@ -330,28 +455,36 @@ export function SocialPage() {
                   required
                   autoFocus
                 />
-                {image && <p className="rounded-full bg-[var(--wedding-beige)] px-3 py-2 text-sm text-[var(--wedding-text)]">{image.name}</p>}
+                {images.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((file) => (
+                      <p key={`${file.name}-${file.size}`} className="rounded-full bg-[var(--wedding-beige)] px-3 py-2 text-sm text-[var(--wedding-text)]">
+                        {file.name}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-center gap-3 border-t border-[var(--wedding-beige)] px-4 py-4 text-[var(--wedding-gold)]">
               <label className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[var(--wedding-beige)]">
                 <ImagePlus className="h-6 w-6" />
-                <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={(event) => setImage(event.target.files?.[0] || null)} />
+                <input type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={(event) => handleImagesSelected(event.target.files)} />
               </label>
             </div>
           </form>
         </div>
       )}
 
-      {lightboxPost?.imageUrl && (
+      {lightboxState && getPostImages(lightboxState.post)[lightboxState.index] && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/88 p-4"
-          onClick={() => setLightboxPost(null)}
+          onClick={() => setLightboxState(null)}
         >
           <button
             type="button"
-            onClick={() => setLightboxPost(null)}
+            onClick={() => setLightboxState(null)}
             className="absolute right-4 top-4 rounded-full bg-white/12 p-3 text-white transition hover:bg-white/20"
             aria-label="Fechar imagem"
           >
@@ -362,17 +495,44 @@ export function SocialPage() {
             className="w-full max-w-6xl"
             onClick={(event) => event.stopPropagation()}
           >
+            {getPostImages(lightboxState.post).length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => changeLightbox('prev')}
+                  className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white transition hover:bg-white/20"
+                  aria-label="Foto anterior"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeLightbox('next')}
+                  className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white transition hover:bg-white/20"
+                  aria-label="Próxima foto"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
             <img
-              src={lightboxPost.imageUrl}
-              alt={`Post de ${lightboxPost.authorName}`}
+              src={getPostImages(lightboxState.post)[lightboxState.index].imageUrl}
+              alt={`Post de ${lightboxState.post.authorName}`}
               className="max-h-[82vh] w-full rounded-3xl object-contain"
             />
             <div className="mt-4 flex items-center justify-between gap-4 text-white">
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold">{lightboxPost.authorName || 'Convidado'}</p>
-                <p className="mt-1 text-sm text-white/75">{formatDate(lightboxPost.createdAt)}</p>
+                <p className="truncate text-base font-semibold">{lightboxState.post.authorName || 'Convidado'}</p>
+                <p className="mt-1 text-sm text-white/75">{formatDate(lightboxState.post.createdAt)}</p>
               </div>
-              <p className="max-w-2xl text-right text-sm text-white/85">{lightboxPost.message}</p>
+              <div className="text-right">
+                <p className="max-w-2xl text-sm text-white/85">{lightboxState.post.message}</p>
+                {getPostImages(lightboxState.post).length > 1 && (
+                  <p className="mt-1 text-xs text-white/65">
+                    Foto {lightboxState.index + 1} de {getPostImages(lightboxState.post).length}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

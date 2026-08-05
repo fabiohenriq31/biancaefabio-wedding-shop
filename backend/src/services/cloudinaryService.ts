@@ -87,6 +87,14 @@ export async function deleteGuestPhoto(publicId: string) {
   await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
 }
 
+export async function deleteGuestPhotos(publicIds: Array<string | null | undefined>) {
+  const validPublicIds = publicIds.filter(Boolean) as string[];
+
+  if (validPublicIds.length === 0) return;
+
+  await Promise.all(validPublicIds.map((publicId) => deleteGuestPhoto(publicId)));
+}
+
 export function buildThumbnailUrl(imageUrl: string) {
   return imageUrl.replace("/upload/", "/upload/c_limit,w_1200,h_1200,q_auto:good,dpr_auto,f_auto/");
 }

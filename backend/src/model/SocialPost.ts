@@ -9,6 +9,13 @@ const socialPostSchema = new mongoose.Schema(
     imageUrl: { type: String, default: null },
     thumbnailUrl: { type: String, default: null },
     publicId: { type: String, default: null },
+    images: [
+      {
+        imageUrl: { type: String, required: true },
+        thumbnailUrl: { type: String, default: null },
+        publicId: { type: String, required: true },
+      },
+    ],
     likeCount: { type: Number, default: 0 },
     likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     repostCount: { type: Number, default: 0 },
