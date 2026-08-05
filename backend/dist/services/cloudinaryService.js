@@ -4,6 +4,7 @@ exports.uploadGuestPhoto = uploadGuestPhoto;
 exports.uploadSocialPostImage = uploadSocialPostImage;
 exports.uploadUserAvatar = uploadUserAvatar;
 exports.deleteGuestPhoto = deleteGuestPhoto;
+exports.deleteGuestPhotos = deleteGuestPhotos;
 exports.buildThumbnailUrl = buildThumbnailUrl;
 const cloudinary_1 = require("cloudinary");
 const stream_1 = require("stream");
@@ -72,6 +73,12 @@ async function deleteGuestPhoto(publicId) {
     if (!publicId)
         return;
     await cloudinary_1.v2.uploader.destroy(publicId, { resource_type: "image" });
+}
+async function deleteGuestPhotos(publicIds) {
+    const validPublicIds = publicIds.filter(Boolean);
+    if (validPublicIds.length === 0)
+        return;
+    await Promise.all(validPublicIds.map((publicId) => deleteGuestPhoto(publicId)));
 }
 function buildThumbnailUrl(imageUrl) {
     return imageUrl.replace("/upload/", "/upload/c_limit,w_1200,h_1200,q_auto:good,dpr_auto,f_auto/");

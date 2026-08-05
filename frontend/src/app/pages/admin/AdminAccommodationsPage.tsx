@@ -362,35 +362,47 @@ export function AdminAccommodationsPage() {
                   value={form.bedDescription}
                   onChange={(event) => setForm((current) => ({ ...current, bedDescription: event.target.value }))}
                   className="min-h-24 rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none md:col-span-2"
-                  placeholder="Descrição das camas"
+                  placeholder="Descreva as camas do quarto. Ex.: 1 cama casal, 2 camas de solteiro"
                 />
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={form.fixedBeds}
-                  onChange={(event) => setForm((current) => ({ ...current, fixedBeds: Number(event.target.value || 0) }))}
-                  className="rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
-                  placeholder="Camas fixas"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={form.extraMattresses}
-                  onChange={(event) => setForm((current) => ({ ...current, extraMattresses: Number(event.target.value || 0) }))}
-                  className="rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
-                  placeholder="Colchões avulsos"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={form.extraPlaces}
-                  onChange={(event) => setForm((current) => ({ ...current, extraPlaces: Number(event.target.value || 0) }))}
-                  className="rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
-                  placeholder="Locais extras"
-                />
+                <label className="space-y-2">
+                  <span className="block text-sm text-[var(--wedding-text)]">Camas fixas</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.fixedBeds}
+                    onChange={(event) => setForm((current) => ({ ...current, fixedBeds: Number(event.target.value || 0) }))}
+                    className="w-full rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
+                    placeholder="Quantidade de camas do quarto"
+                  />
+                  <span className="block text-xs text-[var(--wedding-text-light)]">Conte somente camas montadas no quarto.</span>
+                </label>
+                <label className="space-y-2">
+                  <span className="block text-sm text-[var(--wedding-text)]">Colchões avulsos</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.extraMattresses}
+                    onChange={(event) => setForm((current) => ({ ...current, extraMattresses: Number(event.target.value || 0) }))}
+                    className="w-full rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
+                    placeholder="Quantidade de colchões extras"
+                  />
+                  <span className="block text-xs text-[var(--wedding-text-light)]">Use para colchão separado, sem estrutura de cama.</span>
+                </label>
+                <label className="space-y-2">
+                  <span className="block text-sm text-[var(--wedding-text)]">Locais extras</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.extraPlaces}
+                    onChange={(event) => setForm((current) => ({ ...current, extraPlaces: Number(event.target.value || 0) }))}
+                    className="w-full rounded-2xl border border-[rgba(98,90,82,0.14)] bg-[#fbfaf7] px-4 py-3 outline-none"
+                    placeholder="Ex.: sofá-cama, bicama, rede"
+                  />
+                  <span className="block text-xs text-[var(--wedding-text-light)]">Inclua aqui outros lugares onde alguém consegue dormir.</span>
+                </label>
                 <select
                   value={form.status}
                   onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as AccommodationStatus }))}

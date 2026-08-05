@@ -29,13 +29,54 @@ function sanitizeMessage(value) {
         .trim()
         .slice(0, 280);
 }
+function getUploadedFiles(req) {
+    if (Array.isArray(req.files)) {
+        return req.files;
+    }
+    if (req.files && typeof req.files === "object") {
+        const namedFiles = req.files;
+        return [...(namedFiles.images || []), ...(namedFiles.image || [])];
+    }
+    return [];
+}
+function normalizePost(post) {
+    const images = Array.isArray(post.images) && post.images.length > 0
+        ? post.images.map((image) => ({
+            imageUrl: image.imageUrl,
+            thumbnailUrl: image.thumbnailUrl || (0, cloudinaryService_1.buildThumbnailUrl)(image.imageUrl),
+            publicId: image.publicId,
+        }))
+        : post.imageUrl
+            ? [{
+                    imageUrl: post.imageUrl,
+                    thumbnailUrl: post.thumbnailUrl || (0, cloudinaryService_1.buildThumbnailUrl)(post.imageUrl),
+                    publicId: post.publicId,
+                }]
+            : [];
+    return {
+        ...post.toObject?.() ?? post,
+        images,
+        imageUrl: images[0]?.imageUrl || post.imageUrl || null,
+        thumbnailUrl: images[0]?.thumbnailUrl || post.thumbnailUrl || null,
+        publicId: images[0]?.publicId || post.publicId || null,
+    };
+}
+function getPostPublicIds(post) {
+    const imagePublicIds = Array.isArray(post.images)
+        ? post.images.map((image) => image.publicId)
+        : [];
+    if (imagePublicIds.length > 0) {
+        return imagePublicIds;
+    }
+    return [post.publicId];
+}
 async function getPublicSocialPosts(_req, res) {
     try {
         const posts = await SocialPost_1.SocialPost.find({
             isApproved: true,
             status: "approved",
         }).sort({ createdAt: -1 });
-        return res.json(posts);
+        return res.json(posts.map(normalizePost));
     }
     catch (error) {
         console.error("Erro ao buscar posts sociais:", error);
@@ -55,15 +96,18 @@ async function createSocialPost(req, res) {
         if (!user) {
             return res.status(401).json({ message: "Usuario nÃ£o encontrado." });
         }
-        let imageUrl = null;
-        let thumbnailUrl = null;
-        let publicId = null;
-        if (req.file) {
-            const upload = await (0, cloudinaryService_1.uploadSocialPostImage)(req.file);
-            imageUrl = upload.secure_url;
-            thumbnailUrl = (0, cloudinaryService_1.buildThumbnailUrl)(imageUrl);
-            publicId = upload.public_id;
-        }
+        const uploadedFiles = getUploadedFiles(req);
+        const uploads = await Promise.all(uploadedFiles.map(async (file) => {
+            const upload = await (0, cloudinaryService_1.uploadSocialPostImage)(file);
+            return {
+                imageUrl: upload.secure_url,
+                thumbnailUrl: (0, cloudinaryService_1.buildThumbnailUrl)(upload.secure_url),
+                publicId: upload.public_id,
+            };
+        }));
+        const imageUrl = uploads[0]?.imageUrl || null;
+        const thumbnailUrl = uploads[0]?.thumbnailUrl || null;
+        const publicId = uploads[0]?.publicId || null;
         const post = await SocialPost_1.SocialPost.create({
             authorId: user._id,
             authorName: sanitizeText(user.name, "Convidado", 80),
@@ -72,13 +116,14 @@ async function createSocialPost(req, res) {
             imageUrl,
             thumbnailUrl,
             publicId,
+            images: uploads,
             likeCount: 0,
             isApproved: true,
             status: "approved",
         });
         return res.status(201).json({
             message: "Seu post ja apareceu no B&F Social!",
-            post,
+            post: normalizePost(post),
         });
     }
     catch (error) {
@@ -109,7 +154,7 @@ async function likeSocialPost(req, res) {
         }
         post.likeCount = post.likedBy.length;
         await post.save();
-        return res.json(post);
+        return res.json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao curtir post:", error);
@@ -139,7 +184,7 @@ async function repostSocialPost(req, res) {
         }
         post.repostCount = post.repostedBy.length;
         await post.save();
-        return res.json(post);
+        return res.json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao repostar:", error);
@@ -180,7 +225,7 @@ async function commentSocialPost(req, res) {
             },
         ];
         await post.save();
-        return res.status(201).json(post);
+        return res.status(201).json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao comentar:", error);
@@ -200,7 +245,7 @@ async function updateSocialPost(req, res) {
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
         }
-        return res.json(post);
+        return res.json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao editar post:", error);
@@ -216,9 +261,7 @@ async function deleteOwnSocialPost(req, res) {
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado ou sem permissao." });
         }
-        if (post.publicId) {
-            await (0, cloudinaryService_1.deleteGuestPhoto)(post.publicId);
-        }
+        await (0, cloudinaryService_1.deleteGuestPhotos)(getPostPublicIds(post));
         await post.deleteOne();
         return res.status(204).send();
     }
@@ -236,7 +279,7 @@ async function getAdminSocialPosts(req, res) {
                 ? { status: "approved" }
                 : {};
         const posts = await SocialPost_1.SocialPost.find(filter).sort({ createdAt: -1 });
-        return res.json(posts);
+        return res.json(posts.map(normalizePost));
     }
     catch (error) {
         console.error("Erro ao buscar posts sociais no admin:", error);
@@ -249,7 +292,7 @@ async function hideSocialPost(req, res) {
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado." });
         }
-        return res.json(post);
+        return res.json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao ocultar post:", error);
@@ -262,7 +305,7 @@ async function showSocialPost(req, res) {
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado." });
         }
-        return res.json(post);
+        return res.json(normalizePost(post));
     }
     catch (error) {
         console.error("Erro ao reexibir post:", error);
@@ -275,9 +318,7 @@ async function removeSocialPost(req, res) {
         if (!post) {
             return res.status(404).json({ message: "Post nao encontrado." });
         }
-        if (post.publicId) {
-            await (0, cloudinaryService_1.deleteGuestPhoto)(post.publicId);
-        }
+        await (0, cloudinaryService_1.deleteGuestPhotos)(getPostPublicIds(post));
         await post.deleteOne();
         return res.status(204).send();
     }

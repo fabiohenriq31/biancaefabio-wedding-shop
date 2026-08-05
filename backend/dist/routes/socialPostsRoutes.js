@@ -7,7 +7,10 @@ const uploadMiddleware_1 = require("../middleware/uploadMiddleware");
 const router = (0, express_1.Router)();
 router.use(authMiddleware_1.requireAuth);
 router.get("/", socialPostsController_1.getPublicSocialPosts);
-router.post("/", uploadMiddleware_1.guestPhotoUpload.single("image"), socialPostsController_1.createSocialPost);
+router.post("/", uploadMiddleware_1.guestPhotoUpload.fields([
+    { name: "images", maxCount: 10 },
+    { name: "image", maxCount: 10 },
+]), socialPostsController_1.createSocialPost);
 router.patch("/:id", socialPostsController_1.updateSocialPost);
 router.patch("/:id/like", socialPostsController_1.likeSocialPost);
 router.patch("/:id/repost", socialPostsController_1.repostSocialPost);
