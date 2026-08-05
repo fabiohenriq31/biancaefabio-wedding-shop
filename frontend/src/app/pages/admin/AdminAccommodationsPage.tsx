@@ -203,6 +203,34 @@ export function AdminAccommodationsPage() {
       }));
   }, [data?.accommodations]);
 
+  const accommodationGuestSummary = useMemo(() => {
+    const accommodations = data?.accommodations || [];
+    const guests = data?.guests || [];
+    const assignedGuestIds = new Set<string>();
+
+    accommodations.forEach((accommodation) => {
+      accommodation.guestIds.forEach((guestId) => assignedGuestIds.add(guestId));
+    });
+
+    const rooms = [...accommodations]
+      .sort((first, second) => first.name.localeCompare(second.name, 'pt-BR'))
+      .map((accommodation) => ({
+        ...accommodation,
+        occupied: accommodation.assignedGuests.length,
+        capacity: capacityOf(accommodation),
+      }));
+
+    const unassignedGuests = [...guests]
+      .filter((guest) => !assignedGuestIds.has(guest._id))
+      .sort((first, second) => first.name.localeCompare(second.name, 'pt-BR'));
+
+    return {
+      rooms,
+      assignedCount: assignedGuestIds.size,
+      unassignedGuests,
+    };
+  }, [data?.accommodations, data?.guests]);
+
   function openCreateForm() {
     setShowCreateForm(true);
     setEditingAccommodationId(null);
@@ -636,6 +664,106 @@ export function AdminAccommodationsPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+        <article className="rounded-3xl border border-[rgba(98,90,82,0.12)] bg-white p-6 shadow-[0_12px_30px_rgba(42,37,33,0.05)]">
+          <div className="flex flex-col gap-2 border-b border-[rgba(98,90,82,0.08)] pb-4">
+            <h2 className="text-2xl text-[var(--wedding-text)]">Resumo por quarto</h2>
+            <p className="text-sm text-[var(--wedding-text-light)]">
+              Veja quem já está hospedado em cada local e quantas vagas ainda restam.
+            </p>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {accommodationGuestSummary.rooms.length === 0 ? (
+              <p className="text-sm text-[var(--wedding-text-light)]">Nenhuma hospedagem cadastrada ainda.</p>
+            ) : (
+              accommodationGuestSummary.rooms.map((accommodation) => (
+                <div
+                  key={accommodation._id}
+                  className="rounded-2xl border border-[rgba(98,90,82,0.12)] bg-[#fcfaf6] p-4"
+                >
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg text-[var(--wedding-text)]">{accommodation.name}</h3>
+                        <span className={`rounded-full border px-3 py-1 text-xs ${typeBadgeClass(accommodation.type)}`}>
+                          {roomTypeLabel(accommodation.type)}
+                        </span>
+                        <span className={`rounded-full border px-3 py-1 text-xs ${statusBadgeClass(accommodation.status)}`}>
+                          {statusLabel(accommodation.status)}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-[var(--wedding-text-light)]">
+                        {accommodation.occupied} de {accommodation.capacity} vagas ocupadas
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white px-4 py-3 text-sm text-[var(--wedding-text-light)]">
+                      Restam <strong className="text-[var(--wedding-text)]">{Math.max(accommodation.capacity - accommodation.occupied, 0)}</strong> vagas
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    {accommodation.assignedGuests.length === 0 ? (
+                      <p className="text-sm text-[var(--wedding-text-light)]">Ainda não há convidados hospedados neste local.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {accommodation.assignedGuests.map((guest) => (
+                          <span
+                            key={guest._id}
+                            className="rounded-full border border-[rgba(47,90,61,0.14)] bg-white px-3 py-2 text-sm text-[var(--wedding-text)]"
+                          >
+                            {guest.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </article>
+
+        <article className="rounded-3xl border border-[rgba(98,90,82,0.12)] bg-white p-6 shadow-[0_12px_30px_rgba(42,37,33,0.05)]">
+          <div className="border-b border-[rgba(98,90,82,0.08)] pb-4">
+            <h2 className="text-2xl text-[var(--wedding-text)]">Convidados fora da hospedagem</h2>
+            <p className="mt-2 text-sm text-[var(--wedding-text-light)]">
+              {accommodationGuestSummary.unassignedGuests.length === 0
+                ? 'Todo mundo da lista já foi alocado em uma hospedagem.'
+                : `${accommodationGuestSummary.unassignedGuests.length} convidado(s) ainda não estão em nenhum quarto.`}
+            </p>
+          </div>
+
+          <div className="mt-5 rounded-2xl bg-[#fcfaf6] px-4 py-3 text-sm text-[var(--wedding-text-light)]">
+            Hospedados: <strong className="text-[var(--wedding-text)]">{accommodationGuestSummary.assignedCount}</strong> · Fora da hospedagem:{' '}
+            <strong className="text-[var(--wedding-text)]">{accommodationGuestSummary.unassignedGuests.length}</strong>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {accommodationGuestSummary.unassignedGuests.length === 0 ? (
+              <p className="text-sm text-[var(--wedding-text-light)]">Nenhum convidado pendente.</p>
+            ) : (
+              accommodationGuestSummary.unassignedGuests.map((guest) => (
+                <div
+                  key={guest._id}
+                  className="flex items-center justify-between rounded-2xl border border-[rgba(98,90,82,0.12)] bg-white px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm text-[var(--wedding-text)]">{guest.name}</p>
+                    <p className="text-xs text-[var(--wedding-text-light)]">
+                      {guest.status === 'confirmed' ? 'Confirmado' : 'Não confirmado'} · {guest.isChild ? 'Criança' : 'Adulto'}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[rgba(98,90,82,0.08)] px-3 py-1 text-xs text-[var(--wedding-text-light)]">
+                    Sem quarto
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </article>
       </section>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
