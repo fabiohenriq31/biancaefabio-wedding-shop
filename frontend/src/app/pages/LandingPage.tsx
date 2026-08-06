@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Heart, ShoppingBag, Gift, MessageCircle, Trophy, Sparkles, Crown } from 'lucide-react';
+import { Heart, ShoppingBag, Gift, MessageCircle, Trophy } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { useCart } from '../contexts/CartContext';
@@ -96,51 +96,6 @@ export function LandingPage() {
               <Trophy className="w-5 h-5" />
               Acompanhar Sorteio
             </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-[var(--wedding-beige)] bg-[var(--wedding-offwhite)] px-6 py-8 md:px-8 md:py-10">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-              <div>
-                <p className="text-sm uppercase tracking-[0.22em] text-[var(--wedding-gold)]">Ao vivo no shopping</p>
-                <h2 className="mt-3 text-4xl text-[var(--wedding-text)]">
-                  Hora da gravata com sorteio e revelacao do vencedor
-                </h2>
-                <p className="mt-4 max-w-2xl text-[var(--wedding-text-light)]">
-                  Agora o shopping tem uma area propria para acompanhar a brincadeira, ver quem esta com mais chances e assistir a animacao do ganhador no momento do sorteio.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Button onClick={() => navigate('/shopping/gravata')}>
-                    <Trophy className="w-5 h-5" />
-                    Entrar na area do sorteio
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate('/shopping/products')}>
-                    Continuar vendo presentes
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-1">
-                <div className="rounded-xl bg-white p-5 shadow-sm border border-[var(--wedding-beige)]">
-                  <Sparkles className="h-5 w-5 text-[var(--wedding-gold)]" />
-                  <p className="mt-3 text-lg text-[var(--wedding-text)]">Atualizacao automatica</p>
-                  <p className="mt-2 text-sm text-[var(--wedding-text-light)]">Fez cadastro no admin e a lista ja aparece sem precisar recarregar.</p>
-                </div>
-                <div className="rounded-xl bg-white p-5 shadow-sm border border-[var(--wedding-beige)]">
-                  <Crown className="h-5 w-5 text-[var(--wedding-gold)]" />
-                  <p className="mt-3 text-lg text-[var(--wedding-text)]">Chances por valor</p>
-                  <p className="mt-2 text-sm text-[var(--wedding-text-light)]">Quem contribui mais entra com mais peso no sorteio.</p>
-                </div>
-                <div className="rounded-xl bg-white p-5 shadow-sm border border-[var(--wedding-beige)]">
-                  <Trophy className="h-5 w-5 text-[var(--wedding-gold)]" />
-                  <p className="mt-3 text-lg text-[var(--wedding-text)]">Animacao do vencedor</p>
-                  <p className="mt-2 text-sm text-[var(--wedding-text-light)]">A revelacao aparece na tela com destaque quando o sorteio acontece.</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
