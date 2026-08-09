@@ -1,4 +1,4 @@
-import { ArrowDownAZ, ArrowUpAZ, CheckCircle2, MessageCircle, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, CheckCircle2, Download, FileSpreadsheet, FileText, MessageCircle, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -30,6 +30,44 @@ const guestTypeFilters: Array<{ label: string; value: GuestTypeFilter }> = [
 ];
 
 const RSVP_DEADLINE_MESSAGE = 'Tudo bem? Aqui é a Lunara, cerimonialista do casamento da Bianca e do Fábio. Estou passando para te lembrar com carinho que o prazo para confirmar sua presença vai até 29 de julho de 2026. Se você puder confirmar até essa data, vai nos ajudar muito no fechamento da lista final com os fornecedores. Caso a confirmação não seja feita até lá, seu nome será retirado da lista, tudo bem?';
+
+function formatGuestStatus(status: Guest['status']) {
+  return status === 'confirmed' ? 'Confirmado' : 'Nao confirmado';
+}
+
+function formatGuestType(type: Guest['guestType']) {
+  return type === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado';
+}
+
+function formatYesNo(value: boolean) {
+  return value ? 'Sim' : 'Nao';
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeCsvValue(value: string) {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function downloadFile(content: BlobPart, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
 
 function getWhatsAppLink(name: string, phone?: string) {
   const digits = String(phone || '').replace(/\D/g, '');
@@ -239,6 +277,151 @@ export function AdminGuestsPage() {
     ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(cleanupSetting.lastExecutedAt))
     : '';
 
+  function handleExportExcel() {
+    const formatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    const headers = ['Nome', 'Status', 'Tipo', 'Crianca', 'Pagante', 'Email', 'Telefone', 'Acompanhantes', 'Observacao', 'Criado em'];
+    const rows = visibleGuests.map((guest) => [
+      guest.name,
+      formatGuestStatus(guest.status),
+      formatGuestType(guest.guestType),
+      formatYesNo(guest.isChild),
+      formatYesNo(!guest.isChild),
+      guest.email || '',
+      guest.phone || '',
+      guest.companions || '',
+      guest.message || '',
+      formatter.format(new Date(guest.createdAt)),
+    ]);
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((value) => escapeCsvValue(String(value))).join(';'))
+      .join('\r\n');
+
+    downloadFile(`\uFEFF${csvContent}`, `lista-de-convidados-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  }
+
+  function handleExportPdf() {
+    const exportWindow = window.open('', '_blank', 'noopener,noreferrer,width=1200,height=900');
+
+    if (!exportWindow) {
+      alert('Nao foi possivel abrir a janela de impressao. Verifique se o navegador bloqueou pop-ups.');
+      return;
+    }
+
+    const generatedAt = new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date());
+    const rowsMarkup = visibleGuests.map((guest) => {
+      const createdAt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(guest.createdAt));
+
+      return `
+        <tr>
+          <td>${escapeHtml(guest.name)}</td>
+          <td>${escapeHtml(formatGuestStatus(guest.status))}</td>
+          <td>${escapeHtml(formatGuestType(guest.guestType))}</td>
+          <td>${escapeHtml(guest.isChild ? 'Crianca' : 'Pagante')}</td>
+          <td>${escapeHtml(guest.email || '-')}</td>
+          <td>${escapeHtml(guest.phone || '-')}</td>
+          <td>${escapeHtml(guest.companions || '-')}</td>
+          <td>${escapeHtml(guest.message || '-')}</td>
+          <td>${escapeHtml(createdAt)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    exportWindow.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Lista de convidados</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              color: #2f2623;
+              margin: 32px;
+            }
+            h1 {
+              margin: 0 0 8px;
+              font-size: 28px;
+            }
+            p {
+              margin: 0;
+              color: #6f625d;
+            }
+            .summary {
+              display: grid;
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+              gap: 12px;
+              margin: 24px 0;
+            }
+            .card {
+              border: 1px solid #e8ddd6;
+              border-radius: 12px;
+              padding: 12px;
+              background: #fffaf7;
+            }
+            .card strong {
+              display: block;
+              margin-top: 6px;
+              font-size: 20px;
+              color: #2f2623;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid #e8ddd6;
+              padding: 8px;
+              text-align: left;
+              vertical-align: top;
+            }
+            th {
+              background: #f4ece7;
+            }
+            @media print {
+              body {
+                margin: 16px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Lista de convidados</h1>
+          <p>Exportado em ${escapeHtml(generatedAt)}.</p>
+          <p>Total de registros neste filtro: ${visibleGuests.length}.</p>
+          <div class="summary">
+            <div class="card">Confirmados<strong>${counters.confirmed}</strong></div>
+            <div class="card">Nao confirmados<strong>${counters.notConfirmed}</strong></div>
+            <div class="card">Criancas<strong>${counters.children}</strong></div>
+            <div class="card">Pagantes<strong>${counters.paying}</strong></div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Status</th>
+                <th>Tipo</th>
+                <th>Categoria</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Acompanhantes</th>
+                <th>Observacao</th>
+                <th>Criado em</th>
+              </tr>
+            </thead>
+            <tbody>${rowsMarkup}</tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    exportWindow.document.close();
+    exportWindow.focus();
+    exportWindow.print();
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
@@ -280,6 +463,17 @@ export function AdminGuestsPage() {
             <button type="button" onClick={() => setSortOrder('desc')} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm ${sortOrder === 'desc' ? 'bg-[var(--wedding-text)] text-white' : 'border border-[var(--wedding-beige)] bg-white text-[var(--wedding-text)]'}`}>
               <ArrowUpAZ className="h-4 w-4" />
               Z a A
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={handleExportExcel} disabled={visibleGuests.length === 0} className="inline-flex items-center gap-2 rounded-full border border-[var(--wedding-beige)] bg-white px-4 py-2 text-sm text-[var(--wedding-text)] disabled:cursor-not-allowed disabled:opacity-50">
+              <FileSpreadsheet className="h-4 w-4" />
+              Exportar Excel
+            </button>
+            <button type="button" onClick={handleExportPdf} disabled={visibleGuests.length === 0} className="inline-flex items-center gap-2 rounded-full border border-[var(--wedding-beige)] bg-white px-4 py-2 text-sm text-[var(--wedding-text)] disabled:cursor-not-allowed disabled:opacity-50">
+              <FileText className="h-4 w-4" />
+              Exportar PDF
             </button>
           </div>
         </div>
@@ -386,9 +580,15 @@ export function AdminGuestsPage() {
       </div>
 
       <div className="rounded-lg border border-[var(--wedding-beige)] bg-white p-5">
-        <div className="flex items-center gap-3">
-          <Search className="h-4 w-4 text-[var(--wedding-text-light)]" />
-          <input type="text" placeholder="Buscar por nome, email, telefone ou acompanhantes..." value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="flex-1 bg-transparent outline-none" />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <div className="flex flex-1 items-center gap-3">
+            <Search className="h-4 w-4 text-[var(--wedding-text-light)]" />
+            <input type="text" placeholder="Buscar por nome, email, telefone ou acompanhantes..." value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="flex-1 bg-transparent outline-none" />
+          </div>
+          <div className="flex items-center gap-2 text-sm text-[var(--wedding-text-light)]">
+            <Download className="h-4 w-4" />
+            Exporta exatamente os convidados visiveis no filtro atual.
+          </div>
         </div>
       </div>
 
@@ -437,9 +637,9 @@ export function AdminGuestsPage() {
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-3">
                       <h2 className="text-2xl text-[var(--wedding-text)]">{guest.name}</h2>
-                      <span className={`rounded-full px-3 py-1 text-xs ${isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{isConfirmed ? 'Confirmado' : 'Nao confirmado'}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs ${isConfirmed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{formatGuestStatus(guest.status)}</span>
                       <span className={`rounded-full px-3 py-1 text-xs ${guest.isChild ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'}`}>{guest.isChild ? 'Crianca' : 'Pagante'}</span>
-                      <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">{guest.guestType === 'groomsman' ? 'Padrinho/Madrinha' : 'Convidado'}</span>
+                      <span className="rounded-full bg-[var(--wedding-beige)] px-3 py-1 text-xs text-[var(--wedding-text)]">{formatGuestType(guest.guestType)}</span>
                     </div>
                     <p className="text-sm text-[var(--wedding-text-light)]">{guest.email || 'Sem email'} · {guest.phone || 'Sem telefone'} · Recebido em {date}</p>
                     {guest.companions && <p className="text-sm text-[var(--wedding-text)]"><strong>Acompanhantes:</strong> {guest.companions}</p>}
