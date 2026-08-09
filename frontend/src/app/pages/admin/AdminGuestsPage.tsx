@@ -52,10 +52,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#39;');
 }
 
-function escapeCsvValue(value: string) {
-  return `"${value.replace(/"/g, '""')}"`;
-}
-
 function downloadFile(content: BlobPart, filename: string, type: string) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -278,25 +274,95 @@ export function AdminGuestsPage() {
     : '';
 
   function handleExportExcel() {
-    const formatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-    const headers = ['Nome', 'Status', 'Tipo', 'Crianca', 'Pagante', 'Email', 'Telefone', 'Acompanhantes', 'Observacao', 'Criado em'];
-    const rows = visibleGuests.map((guest) => [
-      guest.name,
-      formatGuestStatus(guest.status),
-      formatGuestType(guest.guestType),
-      formatYesNo(guest.isChild),
-      formatYesNo(!guest.isChild),
-      guest.email || '',
-      guest.phone || '',
-      guest.companions || '',
-      guest.message || '',
-      formatter.format(new Date(guest.createdAt)),
-    ]);
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((value) => escapeCsvValue(String(value))).join(';'))
-      .join('\r\n');
+    const generatedAt = new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date());
+    const rowsMarkup = visibleGuests.map((guest) => {
+      const createdAt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(guest.createdAt));
 
-    downloadFile(`\uFEFF${csvContent}`, `lista-de-convidados-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+      return `
+        <tr>
+          <td>${escapeHtml(guest.name)}</td>
+          <td>${escapeHtml(formatGuestStatus(guest.status))}</td>
+          <td>${escapeHtml(formatGuestType(guest.guestType))}</td>
+          <td>${escapeHtml(formatYesNo(guest.isChild))}</td>
+          <td>${escapeHtml(formatYesNo(!guest.isChild))}</td>
+          <td>${escapeHtml(guest.email || '-')}</td>
+          <td style="mso-number-format:'\\@';">${escapeHtml(guest.phone || '-')}</td>
+          <td>${escapeHtml(guest.companions || '-')}</td>
+          <td>${escapeHtml(guest.message || '-')}</td>
+          <td>${escapeHtml(createdAt)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const excelContent = `
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <meta http-equiv="Content-Type" content="application/vnd.ms-excel; charset=UTF-8" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 24px;
+              color: #2f2623;
+            }
+            h1 {
+              margin: 0 0 6px;
+              font-size: 24px;
+            }
+            p {
+              margin: 0 0 6px;
+              color: #6f625d;
+            }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              margin-top: 20px;
+            }
+            th, td {
+              border: 1px solid #d9d0ca;
+              padding: 8px 10px;
+              text-align: left;
+              vertical-align: top;
+            }
+            th {
+              background: #f4ece7;
+              font-weight: 700;
+            }
+            tr:nth-child(even) td {
+              background: #fcf8f5;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Lista de convidados</h1>
+          <p>Exportado em ${escapeHtml(generatedAt)}</p>
+          <p>Total de registros neste filtro: ${visibleGuests.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Status</th>
+                <th>Tipo</th>
+                <th>Crianca</th>
+                <th>Pagante</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Acompanhantes</th>
+                <th>Observacao</th>
+                <th>Criado em</th>
+              </tr>
+            </thead>
+            <tbody>${rowsMarkup}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    downloadFile(`\uFEFF${excelContent}`, `lista-de-convidados-${new Date().toISOString().slice(0, 10)}.xls`, 'application/vnd.ms-excel;charset=utf-8;');
   }
 
   function handleExportPdf() {
